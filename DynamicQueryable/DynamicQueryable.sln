@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.26403.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicQueryable", "DynamicQueryable\DynamicQueryable.csproj", "{5A232B59-190D-4213-B7C1-A83302A7A587}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicQueryable.Tests", "DynamicQueryable.Tests\DynamicQueryable.Tests.csproj", "{37486C21-81B9-4F40-8816-FB55F0D975FF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{5A232B59-190D-4213-B7C1-A83302A7A587}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A232B59-190D-4213-B7C1-A83302A7A587}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A232B59-190D-4213-B7C1-A83302A7A587}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37486C21-81B9-4F40-8816-FB55F0D975FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37486C21-81B9-4F40-8816-FB55F0D975FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37486C21-81B9-4F40-8816-FB55F0D975FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37486C21-81B9-4F40-8816-FB55F0D975FF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
