@@ -5,11 +5,14 @@
 
   <ItemGroup>
     <PackageReference Include="Giver" Version="0.1.26" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
     <PackageReference Include="xunit" Version="2.2.0" />
     <PackageReference Include="xunit.extensibility.execution" Version="2.2.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net46'">
+    <PackageReference Include="Microsoft.CSharp" Version="4.0" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1'">

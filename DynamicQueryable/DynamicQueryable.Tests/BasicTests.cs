@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic;
@@ -8,20 +7,20 @@ using Giver;
 using DynamicQueryable.Tests.Model;
 
 namespace DynamicQueryable.Tests {
+
     public class BasicTests {
-        private readonly List<Order> _orders;
         private readonly IQueryable<Order> _query;
 
         public BasicTests() {
-            _orders = Give<Order>
+            var orders = Give<Order>
                 .ToMe(o => o.OrderDetails = Give<OrderDetail>
                     .ToMe(od => od.Product = Give<Product>
                         .ToMe(p => p.Supplier = Give<Company>.Single())
                     ).Now(5)
                 ).Now(20);
 
-            _orders[3].Id = 5;
-            _query = _orders.AsQueryable();
+            orders[3].Id = 5;
+            _query = orders.AsQueryable();
         }
 
         [Fact]
@@ -37,7 +36,7 @@ namespace DynamicQueryable.Tests {
             var list = _query.Select(o => o.Id);
             var dynList = _query.Select("Id");
 
-            Assert.True(Enumerable.SequenceEqual(list, dynList as IEnumerable<int>));
+            Assert.True(Enumerable.SequenceEqual(list, (IEnumerable<int>) dynList));
         }
 
         [Fact]
@@ -55,7 +54,7 @@ namespace DynamicQueryable.Tests {
             var list = _query.SelectMany(o => o.OrderDetails);
             var dynList = _query.SelectMany("OrderDetails");
 
-            Assert.True(Enumerable.SequenceEqual(list, dynList as IEnumerable<OrderDetail>));
+            Assert.True(Enumerable.SequenceEqual(list, (IEnumerable<OrderDetail>) dynList));
         }
 
         [Fact]
@@ -72,7 +71,7 @@ namespace DynamicQueryable.Tests {
             IQueryable dynQuery = _query;
             var dynList = dynQuery.Skip(5);
 
-            Assert.True(Enumerable.SequenceEqual(list, dynList as IEnumerable<Order>));
+            Assert.True(Enumerable.SequenceEqual(list, (IEnumerable<Order>) dynList));
         }
 
         [Fact]
@@ -81,7 +80,7 @@ namespace DynamicQueryable.Tests {
             IQueryable dynQuery = _query;
             var dynList = dynQuery.Take(5);
 
-            Assert.True(Enumerable.SequenceEqual(list, dynList as IEnumerable<Order>));
+            Assert.True(Enumerable.SequenceEqual(list, (IEnumerable<Order>)dynList));
         }
 
         [Fact]
