@@ -1499,8 +1499,7 @@ namespace System.Linq.Dynamic {
             BindingFlags flags = BindingFlags.Public | BindingFlags.DeclaredOnly |
                 (staticAccess ? BindingFlags.Static : BindingFlags.Instance);
             foreach (Type t in SelfAndBaseTypes(type)) {
-                MemberInfo[] members = Helper.FindMembers(t, MemberTypes.Property | MemberTypes.Field,
-                    flags, (m, o) => string.Equals(m.Name, memberName, StringComparison.OrdinalIgnoreCase), memberName);
+                MemberInfo[] members = Helper.GetPropertyAndFields(t, flags, memberName);
                 if (members.Length != 0) return members[0];
             }
             return null;
@@ -1510,8 +1509,8 @@ namespace System.Linq.Dynamic {
             BindingFlags flags = BindingFlags.Public | BindingFlags.DeclaredOnly |
                 (staticAccess ? BindingFlags.Static : BindingFlags.Instance);
             foreach (Type t in SelfAndBaseTypes(type)) {
-                MemberInfo[] members = Helper.FindMembers(t, MemberTypes.Method,
-                    flags, (m, o) => string.Equals(m.Name, methodName, StringComparison.OrdinalIgnoreCase), methodName);
+                var members = t.GetMethods(flags)
+                    .Where(m => string.Equals(m.Name, methodName, StringComparison.OrdinalIgnoreCase));
                 int count = FindBestMethod(members.Cast<MethodBase>(), args, out method);
                 if (count != 0) return count;
             }
@@ -1710,9 +1709,8 @@ namespace System.Linq.Dynamic {
 #else
             if (type.IsEnum) {
 #endif
-                MemberInfo[] memberInfos = Helper.FindMembers(type, MemberTypes.Field,
-                    BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.Static,
-                    (m, o) => string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase), name);
+                var flags = BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.Static;
+                MemberInfo[] memberInfos = Helper.GetFields(type, flags, name);
                 if (memberInfos.Length != 0) return ((FieldInfo)memberInfos[0]).GetValue(null);
             }
             return null;

@@ -32,10 +32,16 @@ namespace DynamicQueryable {
 #endif
         }
 
-        internal static MemberInfo[] FindMembers(Type type, MemberTypes memberTypes, BindingFlags bindingFlags,
-                                                 Func<MemberInfo, object, bool> func, object filterCriteria) {
-            var members = type.GetMembers(bindingFlags);
-            return members;
+        internal static MemberInfo[] GetPropertyAndFields(Type type, BindingFlags flags, string name) {
+            var properties = type.GetProperties(flags)
+                .Where(m => string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase));
+            var fields = type.GetFields(flags);
+            return properties.Union(GetFields(type, flags, name)).ToArray();
+        }
+
+        internal static MemberInfo[] GetFields(Type type, BindingFlags flags, string name) {
+            var fields = type.GetFields(flags);
+            return fields.Where(f => string.Equals(f.Name, name, StringComparison.OrdinalIgnoreCase)).ToArray();
         }
     }
 }
