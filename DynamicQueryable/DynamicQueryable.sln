@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26403.3
+VisualStudioVersion = 15.0.26228.4
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicQueryable", "DynamicQueryable\DynamicQueryable.csproj", "{5A232B59-190D-4213-B7C1-A83302A7A587}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DynamicQueryable", "DynamicQueryable\DynamicQueryable.csproj", "{5A232B59-190D-4213-B7C1-A83302A7A587}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicQueryable.Tests", "DynamicQueryable.Tests\DynamicQueryable.Tests.csproj", "{37486C21-81B9-4F40-8816-FB55F0D975FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DynamicQueryable.Tests", "DynamicQueryable.Tests\DynamicQueryable.Tests.csproj", "{37486C21-81B9-4F40-8816-FB55F0D975FF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

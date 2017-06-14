@@ -1,10 +1,12 @@
 ﻿//Copyright (C) Microsoft Corporation.  All rights reserved.
+//Thank you Microsoft!
 
 using System.Collections.Generic;
 using System.Text;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
+using DynamicQueryable;
 
 namespace System.Linq.Dynamic {
 
@@ -1384,7 +1386,7 @@ namespace System.Linq.Dynamic {
         static int GetNumericTypeKind(Type type) {
             type = GetNonNullableType(type);
             if (type.GetTypeInfo().IsEnum) return 0;
-            switch (Type.GetTypeCode(type)) {
+            switch (Helper.GetTypeCode(type)) {
                 case TypeCode.Char:
                 case TypeCode.Single:
                 case TypeCode.Double:
@@ -1436,7 +1438,7 @@ namespace System.Linq.Dynamic {
             BindingFlags flags = BindingFlags.Public | BindingFlags.DeclaredOnly |
                 (staticAccess ? BindingFlags.Static : BindingFlags.Instance);
             foreach (Type t in SelfAndBaseTypes(type)) {
-                MemberInfo[] members = t.GetTypeInfo().FindMembers(MemberTypes.Property | MemberTypes.Field,
+                MemberInfo[] members = t.FindMembers(MemberTypes.Property | MemberTypes.Field,
                     flags, (m, o) => string.Equals(m.Name, memberName, StringComparison.OrdinalIgnoreCase), memberName);
                 if (members.Length != 0) return members[0];
             }
@@ -1447,7 +1449,7 @@ namespace System.Linq.Dynamic {
             BindingFlags flags = BindingFlags.Public | BindingFlags.DeclaredOnly |
                 (staticAccess ? BindingFlags.Static : BindingFlags.Instance);
             foreach (Type t in SelfAndBaseTypes(type)) {
-                MemberInfo[] members = t.GetTypeInfo().FindMembers(MemberTypes.Method,
+                MemberInfo[] members = t.FindMembers(MemberTypes.Method,
                     flags, (m, o) => string.Equals(m.Name, methodName, StringComparison.OrdinalIgnoreCase), methodName);
                 int count = FindBestMethod(members.Cast<MethodBase>(), args, out method);
                 if (count != 0) return count;
@@ -1549,7 +1551,7 @@ namespace System.Linq.Dynamic {
                     if (literals.TryGetValue(ce, out text)) {
                         Type target = GetNonNullableType(type);
                         Object value = null;
-                        switch (Type.GetTypeCode(ce.Type)) {
+                        switch (Helper.GetTypeCode(ce.Type)) {
                             case TypeCode.Int32:
                             case TypeCode.UInt32:
                             case TypeCode.Int64:
@@ -1576,7 +1578,7 @@ namespace System.Linq.Dynamic {
         }
 
         static object ParseNumber(string text, Type type) {
-            switch (Type.GetTypeCode(GetNonNullableType(type))) {
+            switch (Helper.GetTypeCode(GetNonNullableType(type))) {
                 case TypeCode.SByte:
                     sbyte sb;
                     if (sbyte.TryParse(text, out sb)) return sb;
@@ -1627,7 +1629,7 @@ namespace System.Linq.Dynamic {
 
         static object ParseEnum(string name, Type type) {
             if (type.GetTypeInfo().IsEnum) {
-                MemberInfo[] memberInfos = type.GetTypeInfo().FindMembers(MemberTypes.Field,
+                MemberInfo[] memberInfos = type.FindMembers(MemberTypes.Field,
                     BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.Static,
                     (m, o) => string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase), name);
                 if (memberInfos.Length != 0) return ((FieldInfo)memberInfos[0]).GetValue(null);
@@ -1641,8 +1643,8 @@ namespace System.Linq.Dynamic {
             Type st = GetNonNullableType(source);
             Type tt = GetNonNullableType(target);
             if (st != source && tt == target) return false;
-            TypeCode sc = st.GetTypeInfo().IsEnum ? TypeCode.Object : Type.GetTypeCode(st);
-            TypeCode tc = tt.GetTypeInfo().IsEnum ? TypeCode.Object : Type.GetTypeCode(tt);
+            TypeCode sc = st.GetTypeInfo().IsEnum ? TypeCode.Object : Helper.GetTypeCode(st);
+            TypeCode tc = tt.GetTypeInfo().IsEnum ? TypeCode.Object : Helper.GetTypeCode(tt);
             switch (sc) {
                 case TypeCode.SByte:
                     switch (tc) {
