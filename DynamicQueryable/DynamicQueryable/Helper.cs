@@ -33,13 +33,12 @@ namespace DynamicQueryable {
         }
 
         internal static MemberInfo[] GetPropertyAndFields(Type type, BindingFlags flags, string name) {
-            var properties = type.GetProperties(flags)
+            IEnumerable<MemberInfo> properties = type.GetProperties(flags)
                 .Where(m => string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase));
-            var fields = type.GetFields(flags);
             return properties.Union(GetFields(type, flags, name)).ToArray();
         }
 
-        internal static MemberInfo[] GetFields(Type type, BindingFlags flags, string name) {
+        internal static FieldInfo[] GetFields(Type type, BindingFlags flags, string name) {
             var fields = type.GetFields(flags);
             return fields.Where(f => string.Equals(f.Name, name, StringComparison.OrdinalIgnoreCase)).ToArray();
         }
