@@ -1,4 +1,6 @@
-﻿namespace DynamicQueryable {
+﻿#if NET_STANDARD
+
+namespace DynamicQueryable {
 
     internal enum MemberTypes {
         Constructor = 0x01,
@@ -12,3 +14,5 @@
         All = Constructor | Event | Field | Method | Property | TypeInfo | NestedType
     }
 }
+
+#endif

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace DynamicQueryable {
@@ -30,9 +32,10 @@ namespace DynamicQueryable {
 #endif
         }
 
-        internal static MemberInfo[] FindMembers(this Type type, MemberTypes memberType, BindingFlags bindingAttr,
+        internal static MemberInfo[] FindMembers(Type type, MemberTypes memberTypes, BindingFlags bindingFlags,
                                                  Func<MemberInfo, object, bool> func, object filterCriteria) {
-            return null;
+            var members = type.GetMembers(bindingFlags);
+            return members;
         }
     }
 }

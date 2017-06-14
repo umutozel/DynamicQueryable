@@ -13,5 +13,13 @@
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard1.3'">
     <DefineConstants>NET_STANDARD;NET_STANDARD_13</DefineConstants>
   </PropertyGroup>
-  
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
+    <DefineConstants>NET;NET_40</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
+    <DefineConstants>NET;NET_45</DefineConstants>
+  </PropertyGroup>
+
 </Project>

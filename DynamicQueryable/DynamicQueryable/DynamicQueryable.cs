@@ -81,7 +81,11 @@ namespace System.Linq.Dynamic {
             Expression queryExpr = source.Expression;
             string methodAsc;
             string methodDesc;
+#if NET_STANDARD
             if (queryExpr.Type.GetTypeInfo().IsGenericType && queryExpr.Type.GetGenericTypeDefinition() == typeof(IOrderedQueryable<>)) {
+#else
+            if (queryExpr.Type.IsGenericType && queryExpr.Type.GetGenericTypeDefinition() == typeof(IOrderedQueryable<>)) {
+#endif
                 methodAsc = "ThenBy";
                 methodDesc = "ThenByDescending";
             }
@@ -206,7 +210,11 @@ namespace System.Linq.Dynamic {
             var type2 = lambda2.Body.Type;
             if (type1 == type2) return;
 
+#if NET_STANDARD
             if (type2.GetTypeInfo().IsGenericType && type2.GetGenericTypeDefinition() == typeof(Nullable<>) && type1 == type2.GetGenericArguments()[0])
+#else
+            if (type2.IsGenericType && type2.GetGenericTypeDefinition() == typeof(Nullable<>) && type1 == type2.GetGenericArguments()[0])
+#endif
                 lambda1 = Expression.Lambda(Expression.Convert(lambda1.Body, type2), lambda1.Parameters.ToArray());
             else // this may fail because types are incompatible
                 lambda2 = Expression.Lambda(Expression.Convert(lambda2.Body, type1), lambda2.Parameters.ToArray());
@@ -322,7 +330,11 @@ namespace System.Linq.Dynamic {
 
         private ClassFactory() {
             AssemblyName name = new AssemblyName("DynamicClasses");
+#if NET_40
+            var assembly = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName("BatMap_DynamicAssembly"), AssemblyBuilderAccess.Run);
+#else
             AssemblyBuilder assembly = AssemblyBuilder.DefineDynamicAssembly(name, AssemblyBuilderAccess.Run);
+#endif
 #if ENABLE_LINQ_PARTIAL_TRUST
             new ReflectionPermission(PermissionState.Unrestricted).Assert();
 #endif
@@ -360,7 +372,11 @@ namespace System.Linq.Dynamic {
                 FieldInfo[] fields = GenerateProperties(tb, properties);
                 GenerateEquals(tb, fields);
                 GenerateGetHashCode(tb, fields);
+#if NET_STANDARD
                 Type result = tb.CreateTypeInfo().AsType();
+#else
+                Type result = tb.CreateType();
+#endif
                 return result;
             }
             finally {
@@ -404,10 +420,18 @@ namespace System.Linq.Dynamic {
                 MethodAttributes.Virtual | MethodAttributes.HideBySig,
                 typeof(bool), new Type[] { typeof(object) });
             ILGenerator gen = mb.GetILGenerator();
+#if NET_STANDARD
             LocalBuilder other = gen.DeclareLocal(tb.AsType());
+#else
+            LocalBuilder other = gen.DeclareLocal(tb);
+#endif
             Label next = gen.DefineLabel();
             gen.Emit(OpCodes.Ldarg_1);
+#if NET_STANDARD
             gen.Emit(OpCodes.Isinst, tb.AsType());
+#else
+            gen.Emit(OpCodes.Isinst, tb);
+#endif
             gen.Emit(OpCodes.Stloc, other);
             gen.Emit(OpCodes.Ldloc, other);
             gen.Emit(OpCodes.Brtrue_S, next);
@@ -779,7 +803,11 @@ namespace System.Linq.Dynamic {
                 Expression right = ParseAdditive();
                 bool isEquality = op.id == TokenId.Equal || op.id == TokenId.DoubleEqual ||
                     op.id == TokenId.ExclamationEqual || op.id == TokenId.LessGreater;
+#if NET_STANDARD
                 if (isEquality && !left.Type.GetTypeInfo().IsValueType && !right.Type.GetTypeInfo().IsValueType) {
+#else
+                if (isEquality && !left.Type.IsValueType && !right.Type.IsValueType) {
+#endif
                     if (left.Type != right.Type) {
                         if (left.Type.IsAssignableFrom(right.Type)) {
                             right = Expression.Convert(right, left.Type);
@@ -1178,7 +1206,11 @@ namespace System.Linq.Dynamic {
             int errorPos = token.pos;
             NextToken();
             if (token.id == TokenId.Question) {
+#if NET_STANDARD
                 if (!type.GetTypeInfo().IsValueType || IsNullableType(type))
+#else
+                if (!type.IsValueType || IsNullableType(type))
+#endif
                     throw ParseError(errorPos, Res.TypeHasNoNullableForm, GetTypeName(type));
                 type = typeof(Nullable<>).MakeGenericType(type);
                 NextToken();
@@ -1205,7 +1237,11 @@ namespace System.Linq.Dynamic {
         Expression GenerateConversion(Expression expr, Type type, int errorPos) {
             Type exprType = expr.Type;
             if (exprType == type) return expr;
+#if NET_STANDARD
             if (exprType.GetTypeInfo().IsValueType && type.GetTypeInfo().IsValueType) {
+#else
+            if (exprType.IsValueType && type.IsValueType) {
+#endif
                 if ((IsNullableType(exprType) || IsNullableType(type)) &&
                     GetNonNullableType(exprType) == GetNonNullableType(type))
                     return Expression.Convert(expr, type);
@@ -1214,7 +1250,11 @@ namespace System.Linq.Dynamic {
                     return Expression.ConvertChecked(expr, type);
             }
             if (exprType.IsAssignableFrom(type) || type.IsAssignableFrom(exprType) ||
+#if NET_STANDARD
                 exprType.GetTypeInfo().IsInterface || type.GetTypeInfo().IsInterface)
+#else
+                exprType.IsInterface || type.IsInterface)
+#endif
                 return Expression.Convert(expr, type);
             throw ParseError(errorPos, Res.CannotConvertValue,
                 GetTypeName(exprType), GetTypeName(type));
@@ -1265,14 +1305,23 @@ namespace System.Linq.Dynamic {
 
         static Type FindGenericType(Type generic, Type type) {
             while (type != null && type != typeof(object)) {
+#if NET_STANDARD
                 if (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == generic) return type;
                 if (generic.GetTypeInfo().IsInterface) {
+#else
+                if (type.IsGenericType && type.GetGenericTypeDefinition() == generic) return type;
+                if (generic.IsInterface) {
+#endif
                     foreach (Type intfType in type.GetInterfaces()) {
                         Type found = FindGenericType(generic, intfType);
                         if (found != null) return found;
                     }
                 }
+#if NET_STANDARD
                 type = type.GetTypeInfo().BaseType;
+#else
+                type = type.BaseType;
+#endif
             }
             return null;
         }
@@ -1357,7 +1406,11 @@ namespace System.Linq.Dynamic {
         }
 
         static bool IsNullableType(Type type) {
+#if NET_STANDARD
             return type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+#else
+            return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+#endif
         }
 
         static Type GetNonNullableType(Type type) {
@@ -1385,7 +1438,11 @@ namespace System.Linq.Dynamic {
 
         static int GetNumericTypeKind(Type type) {
             type = GetNonNullableType(type);
+#if NET_STANDARD
             if (type.GetTypeInfo().IsEnum) return 0;
+#else
+            if (type.IsEnum) return 0;
+#endif
             switch (Helper.GetTypeCode(type)) {
                 case TypeCode.Char:
                 case TypeCode.Single:
@@ -1408,7 +1465,11 @@ namespace System.Linq.Dynamic {
         }
 
         static bool IsEnumType(Type type) {
+#if NET_STANDARD
             return GetNonNullableType(type).GetTypeInfo().IsEnum;
+#else
+            return GetNonNullableType(type).IsEnum;
+#endif
         }
 
         void CheckAndPromoteOperand(Type signatures, string opName, ref Expression expr, int errorPos) {
@@ -1438,7 +1499,7 @@ namespace System.Linq.Dynamic {
             BindingFlags flags = BindingFlags.Public | BindingFlags.DeclaredOnly |
                 (staticAccess ? BindingFlags.Static : BindingFlags.Instance);
             foreach (Type t in SelfAndBaseTypes(type)) {
-                MemberInfo[] members = t.FindMembers(MemberTypes.Property | MemberTypes.Field,
+                MemberInfo[] members = Helper.FindMembers(t, MemberTypes.Property | MemberTypes.Field,
                     flags, (m, o) => string.Equals(m.Name, memberName, StringComparison.OrdinalIgnoreCase), memberName);
                 if (members.Length != 0) return members[0];
             }
@@ -1449,7 +1510,7 @@ namespace System.Linq.Dynamic {
             BindingFlags flags = BindingFlags.Public | BindingFlags.DeclaredOnly |
                 (staticAccess ? BindingFlags.Static : BindingFlags.Instance);
             foreach (Type t in SelfAndBaseTypes(type)) {
-                MemberInfo[] members = t.FindMembers(MemberTypes.Method,
+                MemberInfo[] members = Helper.FindMembers(t, MemberTypes.Method,
                     flags, (m, o) => string.Equals(m.Name, methodName, StringComparison.OrdinalIgnoreCase), methodName);
                 int count = FindBestMethod(members.Cast<MethodBase>(), args, out method);
                 if (count != 0) return count;
@@ -1475,7 +1536,11 @@ namespace System.Linq.Dynamic {
         }
 
         static IEnumerable<Type> SelfAndBaseTypes(Type type) {
+#if NET_STANDARD
             if (type.GetTypeInfo().IsInterface) {
+#else
+            if (type.IsInterface) {
+#endif
                 List<Type> types = new List<Type>();
                 AddInterface(types, type);
                 return types;
@@ -1486,7 +1551,11 @@ namespace System.Linq.Dynamic {
         static IEnumerable<Type> SelfAndBaseClasses(Type type) {
             while (type != null) {
                 yield return type;
+#if NET_STANDARD
                 type = type.GetTypeInfo().BaseType;
+#else
+                type = type.BaseType;
+#endif
             }
         }
 
@@ -1543,7 +1612,11 @@ namespace System.Linq.Dynamic {
             if (expr is ConstantExpression) {
                 ConstantExpression ce = (ConstantExpression)expr;
                 if (ce == nullLiteral) {
+#if NET_STANDARD
                     if (!type.GetTypeInfo().IsValueType || IsNullableType(type))
+#else
+                    if (!type.IsValueType || IsNullableType(type))
+#endif
                         return Expression.Constant(null, type);
                 }
                 else {
@@ -1571,7 +1644,11 @@ namespace System.Linq.Dynamic {
                 }
             }
             if (IsCompatibleWith(expr.Type, type)) {
+#if NET_STANDARD
                 if (type.GetTypeInfo().IsValueType || exact) return Expression.Convert(expr, type);
+#else
+                if (type.IsValueType || exact) return Expression.Convert(expr, type);
+#endif
                 return expr;
             }
             return null;
@@ -1628,8 +1705,12 @@ namespace System.Linq.Dynamic {
         }
 
         static object ParseEnum(string name, Type type) {
+#if NET_STANDARD
             if (type.GetTypeInfo().IsEnum) {
-                MemberInfo[] memberInfos = type.FindMembers(MemberTypes.Field,
+#else
+            if (type.IsEnum) {
+#endif
+                MemberInfo[] memberInfos = Helper.FindMembers(type, MemberTypes.Field,
                     BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.Static,
                     (m, o) => string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase), name);
                 if (memberInfos.Length != 0) return ((FieldInfo)memberInfos[0]).GetValue(null);
@@ -1639,12 +1720,21 @@ namespace System.Linq.Dynamic {
 
         static bool IsCompatibleWith(Type source, Type target) {
             if (source == target) return true;
+#if NET_STANDARD
             if (!target.GetTypeInfo().IsValueType) return target.IsAssignableFrom(source);
+#else
+            if (!target.IsValueType) return target.IsAssignableFrom(source);
+#endif
             Type st = GetNonNullableType(source);
             Type tt = GetNonNullableType(target);
             if (st != source && tt == target) return false;
+#if NET_STANDARD
             TypeCode sc = st.GetTypeInfo().IsEnum ? TypeCode.Object : Helper.GetTypeCode(st);
             TypeCode tc = tt.GetTypeInfo().IsEnum ? TypeCode.Object : Helper.GetTypeCode(tt);
+#else
+            TypeCode sc = st.IsEnum ? TypeCode.Object : Helper.GetTypeCode(st);
+            TypeCode tc = tt.IsEnum ? TypeCode.Object : Helper.GetTypeCode(tt);
+#endif
             switch (sc) {
                 case TypeCode.SByte:
                     switch (tc) {
