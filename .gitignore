@@ -260,4 +260,5 @@ paket-files/
 __pycache__/
 *.pyc
 /opencoverCoverage.xml
-/tools/
+/tools
+/reports
