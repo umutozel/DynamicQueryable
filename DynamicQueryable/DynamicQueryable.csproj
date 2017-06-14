@@ -22,4 +22,9 @@
     <DefineConstants>NET;NET_45</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <DebugType>full</DebugType>
+    <DebugSymbols>True</DebugSymbols>
+  </PropertyGroup>
+  
 </Project>
