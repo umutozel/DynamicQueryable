@@ -110,7 +110,12 @@ namespace DynamicQueryable.Tests {
 
         [Fact]
         public void Test_Join() {
-            
+            var ids = _query.Skip(10).Take(3).Select(o => new { o.Id });
+
+            var join = _query.Join(ids, o => o.Id, x => x.Id, (o, x) => o.Price);
+            var dynJoin = (IEnumerable<double>) _query.Join("j1", ids, "j2", "j1.Id", "j2.Id", "j1.Price");
+
+            Assert.True(Enumerable.SequenceEqual(join, dynJoin));
         }
 
         [Fact]
