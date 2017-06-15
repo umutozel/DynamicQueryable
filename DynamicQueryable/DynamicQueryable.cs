@@ -135,6 +135,10 @@ namespace System.Linq.Dynamic {
                     source.Expression, Expression.Quote(keyLambda), Expression.Quote(elementLambda)));
         }
 
+        public static IQueryable<T> SkipWhile<T>(this IQueryable<T> source, string predicate, params object[] values) {
+            return (IQueryable<T>)SkipWhile((IQueryable)source, predicate, values);
+        }
+
         public static IQueryable SkipWhile(this IQueryable source, string predicate, params object[] values) {
             if (source == null) throw new ArgumentNullException("source");
             if (predicate == null) throw new ArgumentNullException("predicate");
@@ -144,6 +148,10 @@ namespace System.Linq.Dynamic {
                     typeof(Queryable), "SkipWhile",
                     new Type[] { source.ElementType },
                     source.Expression, Expression.Quote(lambda)));
+        }
+
+        public static IQueryable<T> TakeWhile<T>(this IQueryable<T> source, string predicate, params object[] values) {
+            return (IQueryable<T>)TakeWhile((IQueryable)source, predicate, values);
         }
 
         public static IQueryable TakeWhile(this IQueryable source, string predicate, params object[] values) {
@@ -392,6 +400,7 @@ namespace System.Linq.Dynamic {
                 DynamicProperty dp = properties[i];
                 FieldBuilder fb = tb.DefineField("_" + dp.Name, dp.Type, FieldAttributes.Private);
                 PropertyBuilder pb = tb.DefineProperty(dp.Name, PropertyAttributes.HasDefault, dp.Type, null);
+
                 MethodBuilder mbGet = tb.DefineMethod("get_" + dp.Name,
                     MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
                     dp.Type, Type.EmptyTypes);
@@ -399,16 +408,19 @@ namespace System.Linq.Dynamic {
                 genGet.Emit(OpCodes.Ldarg_0);
                 genGet.Emit(OpCodes.Ldfld, fb);
                 genGet.Emit(OpCodes.Ret);
+                pb.SetGetMethod(mbGet);
+
                 MethodBuilder mbSet = tb.DefineMethod("set_" + dp.Name,
                     MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
                     null, new Type[] { dp.Type });
+                mbSet.DefineParameter(1, ParameterAttributes.In, "_" + dp.Name);
                 ILGenerator genSet = mbSet.GetILGenerator();
                 genSet.Emit(OpCodes.Ldarg_0);
                 genSet.Emit(OpCodes.Ldarg_1);
                 genSet.Emit(OpCodes.Stfld, fb);
                 genSet.Emit(OpCodes.Ret);
-                pb.SetGetMethod(mbGet);
                 pb.SetSetMethod(mbSet);
+
                 fields[i] = fb;
             }
             return fields;
