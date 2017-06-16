@@ -72,7 +72,7 @@ namespace DynamicQueryable.Tests {
         [Fact]
         public void Test_Multiplicative() {
             var list = _query.Select(o => (o.Price * 5) / (o.Id % 3));
-            var dynList = _query.Select("(Price * 5) / (Id % 3)").Cast<double>();
+            var dynList = _query.Select("(Price * 5) / (Id % 3)").Cast<double?>();
 
             Assert.True(Enumerable.SequenceEqual(list, dynList));
         }
