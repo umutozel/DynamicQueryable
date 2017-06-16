@@ -39,10 +39,8 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable SelectMany(this IQueryable source, string selector, params object[] values) {
-            if (source == null)
-                throw new ArgumentNullException("source");
-            if (selector == null)
-                throw new ArgumentNullException("selector");
+            if (source == null) throw new ArgumentNullException("source");
+            if (selector == null) throw new ArgumentNullException("selector");
 
             // Parse the lambda
             LambdaExpression lambda =
@@ -282,10 +280,6 @@ namespace System.Linq.Dynamic {
 
         public static Expression<Func<T, S>> ParseLambda<T, S>(string expression, params object[] values) {
             return (Expression<Func<T, S>>)ParseLambda(typeof(T), typeof(S), expression, values);
-        }
-
-        public static Type CreateClass(params DynamicProperty[] properties) {
-            return ClassFactory.Instance.GetDynamicClass(properties);
         }
 
         public static Type CreateClass(IEnumerable<DynamicProperty> properties) {

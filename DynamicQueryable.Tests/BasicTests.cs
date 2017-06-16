@@ -74,6 +74,14 @@ namespace DynamicQueryable.Tests {
         }
 
         [Fact]
+        public void Test_OrderBy_Multi2() {
+            var list = _query.OrderBy(o => o.Id).ThenBy(o => o.Price);
+            var dynList = _query.OrderBy("Id").OrderBy("Price");
+
+            Assert.True(Enumerable.SequenceEqual(list, dynList));
+        }
+
+        [Fact]
         public void Test_Skip() {
             var list = _query.Skip(5);
             IQueryable dynQuery = _query;
