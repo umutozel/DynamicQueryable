@@ -46,6 +46,7 @@ namespace DynamicQueryable.Tests {
             var lastItem = list.Last();
             var dynLastItem = (dynamic)dynList.Last();
             Assert.Equal(lastItem.OrderId, dynLastItem.OrderId);
+            Assert.NotEqual(_query.Last().ToString(), dynLastItem.ToString());
         }
 
         [Fact]

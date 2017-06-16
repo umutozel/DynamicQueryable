@@ -54,9 +54,9 @@ namespace DynamicQueryable.Tests {
         }
 
         [Fact]
-        public void Test_Arithmetic() {
-            var count = _query.Where(o => o.Id + 10 - 50 > 0).Count();
-            var dynCount = _query.Where("Id + 10 - 50 > 0").Count();
+        public void Test_Additive() {
+            var count = _query.Where(o => o.Id + 10 - 50.0 > 0).Count();
+            var dynCount = _query.Where("Id + 10 - 50.0 > 0").Count();
 
             Assert.Equal(count, dynCount);
         }
@@ -67,6 +67,23 @@ namespace DynamicQueryable.Tests {
             var dynList = _query.Select("\"No: \" & OrderNo").Cast<string>();
 
             Assert.True(Enumerable.SequenceEqual(list, dynList));
+        }
+
+        [Fact]
+        public void Test_Multiplicative() {
+            var list = _query.Select(o => (o.Price * 5) / (o.Id % 3));
+            var dynList = _query.Select("(Price * 5) / (Id % 3)").Cast<double>();
+
+            Assert.True(Enumerable.SequenceEqual(list, dynList));
+        }
+
+
+        [Fact]
+        public void Test_Unary() {
+            var count = _query.Where(o => !(-1 * (-o.Id) > 0)).Count();
+            var dynCount = _query.Where("!(-1 * -Id > 0)").Count();
+
+            Assert.Equal(count, dynCount);
         }
     }
 }
