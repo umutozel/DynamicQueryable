@@ -2,6 +2,18 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard1.3;net45;net40</TargetFrameworks>
+	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PackageId>DynamicQueryable</PackageId>
+    <Authors>Umut Özel - Scott Guthrie</Authors>
+    <PackageLicenseUrl>https://github.com/umutozel/DynamicQueryable/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/umutozel/DynamicQueryable</PackageProjectUrl>
+    <PackageIconUrl>https://cdn.rawgit.com/umutozel/DynamicQueryable/master/icon.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/umutozel/DynamicQueryable</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>Dynamic IQueryable Linq</PackageTags>
+    <title>DynamicQueryable: Based on Scott Guthrie's work. Contains some fixes and improvements for Beetle.js.</title>
+    <description>Construct Linq queries using strings!.</description>
+    <copyright>Copyright (c) 2017</copyright>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.3'">
