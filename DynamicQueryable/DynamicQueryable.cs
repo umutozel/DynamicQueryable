@@ -187,7 +187,7 @@ namespace System.Linq.Dynamic {
 
         public static bool Any(this IQueryable source) {
             if (source == null) throw new ArgumentNullException("source");
-            return (bool)source.Provider.Execute(
+            return source.Provider.Execute<bool>(
                 Expression.Call(
                     typeof(Queryable), "Any",
                     new Type[] { source.ElementType }, source.Expression));
@@ -196,7 +196,7 @@ namespace System.Linq.Dynamic {
         public static bool All(this IQueryable source, string predicate, params object[] values) {
             if (source == null) throw new ArgumentNullException("source");
             var lambda = DynamicExpression.ParseLambda(source.ElementType, typeof(bool), predicate, values);
-            return (bool)source.Provider.Execute(
+            return source.Provider.Execute<bool>(
                 Expression.Call(
                     typeof(Queryable), "All",
                     new Type[] { source.ElementType },
