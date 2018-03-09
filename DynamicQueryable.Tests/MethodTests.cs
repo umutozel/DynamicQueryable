@@ -7,10 +7,10 @@ using DynamicQueryable.Tests.Model;
 
 namespace DynamicQueryable.Tests {
 
-    public class BasicTests {
+    public class MethodTests {
         private readonly IQueryable<Order> _query;
 
-        public BasicTests() {
+        public MethodTests() {
             var orders = Give<Order>
                 .ToMe(o => o.OrderDetails = Give<OrderDetail>
                     .ToMe(od => od.Product = Give<Product>
