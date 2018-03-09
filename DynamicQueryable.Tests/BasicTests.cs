@@ -33,8 +33,8 @@ namespace DynamicQueryable.Tests {
         [Fact]
         public void Test_Where_2() {
             Assert.Equal(
-                _query.Where(o => (o.Id == 5 ? 1 : (int?)null) != null),
-                _query.Where("(Id == 5 ? 1 : (int?)null) != null")
+                _query.Where(o => (o.Id == 5 ? 1 : 0) != 0),
+                _query.Where("(Id == 5 ? 1 : 0) != 0")
             );
         }
 
