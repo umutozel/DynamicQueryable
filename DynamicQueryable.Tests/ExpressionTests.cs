@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic;
 using Xunit;
@@ -84,6 +86,22 @@ namespace DynamicQueryable.Tests {
             var dynCount = _query.Where("!(-1 * -Id > 0)").Count();
 
             Assert.Equal(count, dynCount);
+        }
+
+        [Fact]
+        public void Test_DateTime_Parse() {
+            var ln = DateTime.Now.Date;
+            var un = ln.ToUniversalTime();
+            var orders = new List<Order> {
+                new Order {Id = 1, OrderDate = new DateTime(un.Year, un.Month, un.Day, un.Hour, un.Minute, un.Second, un.Millisecond, DateTimeKind.Unspecified)},
+                new Order {Id = 2, OrderDate = un},
+                new Order {Id = 3, OrderDate = ln},
+            }.AsQueryable();
+
+            Assert.Equal(1, orders.Where($"OrderDate == \"{un:yyyy-MM-ddTHH:mm:ss}\"", DateTimeKind.Unspecified).FirstOrDefault()?.Id);
+            Assert.Equal(2, orders.Where($"OrderDate == \"{un:O}\"", DateTimeKind.Utc).Count());
+            Assert.Equal(3, orders.Where($"OrderDate == \"{ln:O}\"", DateTimeKind.Local).FirstOrDefault()?.Id);
+            Assert.Equal(3, orders.Where($"OrderDate == \"{ln:O}\"").FirstOrDefault()?.Id);
         }
     }
 }

@@ -11,7 +11,8 @@ using DynamicQueryable;
 namespace System.Linq.Dynamic {
 
     public static class DynamicQueryable {
-        public static DateTimeKind DateTimeKind = DateTimeKind.Utc;
+        // most developers use local time while persisting DateTimes (DateTime.Now), so we default to that
+        public static DateTimeKind DateTimeKind = DateTimeKind.Local;
 
         public static IQueryable<T> Where<T>(this IQueryable<T> source, string predicate, params object[] values) {
             return Where(source, predicate, DateTimeKind, values);
@@ -917,16 +918,27 @@ namespace System.Linq.Dynamic {
                     }
                 }
                 else if ((left.Type == typeof(DateTime?) || left.Type == typeof(DateTime)) && right.Type == typeof(string)) {
-                    if (right is ConstantExpression) {
-                        DateTime dateValue;
-                        string value = ((ConstantExpression)right).Value.ToString();
-                        if (DateTime.TryParse(value, out dateValue)) {
-                            if (_dateTimeKind == DateTimeKind.Utc) {
-                                dateValue = dateValue.ToUniversalTime();
+                    if (right is ConstantExpression expression) {
+                        var value = expression.Value.ToString();
+                        if (DateTime.TryParse(value, out var dateValue)) {
+                            if (_dateTimeKind != DateTimeKind.Unspecified) {
+                                if (dateValue.Kind == DateTimeKind.Unspecified) {
+                                    // accept unspecified dates as universal
+                                    dateValue = dateValue.ToUniversalTime();
+
+                                    if (_dateTimeKind == DateTimeKind.Local) {
+                                        // adjust to local time zone
+                                        dateValue = dateValue.ToLocalTime();
+                                    }
+                                }
+                                else if (_dateTimeKind != dateValue.Kind) {
+                                    // convert to correct kind
+                                    dateValue = _dateTimeKind == DateTimeKind.Local
+                                        ? dateValue.ToLocalTime()
+                                        : dateValue.ToUniversalTime();
+                                }
                             }
-                            else if (_dateTimeKind == DateTimeKind.Local) {
-                                dateValue = dateValue.ToUniversalTime().ToLocalTime();
-                            }
+
                             DateTime? nullableDateValue = dateValue;
                             right = left.Type == typeof(DateTime?)
                                 ? Expression.Constant(nullableDateValue, typeof(DateTime?))
