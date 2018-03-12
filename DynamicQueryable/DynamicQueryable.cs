@@ -918,35 +918,30 @@ namespace System.Linq.Dynamic {
                     }
                 }
                 else if ((left.Type == typeof(DateTime?) || left.Type == typeof(DateTime)) && right.Type == typeof(string)) {
-                    if (right is ConstantExpression expression) {
-                        var value = expression.Value.ToString();
-                        if (DateTime.TryParse(value, out var dateValue)) {
-                            if (_dateTimeKind != DateTimeKind.Unspecified) {
-                                if (dateValue.Kind == DateTimeKind.Unspecified) {
-                                    // accept unspecified dates as universal
-                                    dateValue = dateValue.ToUniversalTime();
+                    if (right is ConstantExpression e && DateTime.TryParse(e.Value.ToString(), out var dateValue)) {
+                        if (_dateTimeKind != dateValue.Kind && _dateTimeKind != DateTimeKind.Unspecified) {
+                            // accept unspecified dates as universal
+                            if (dateValue.Kind == DateTimeKind.Unspecified) {
+                                // adjust to local time zone
+                                dateValue = dateValue.ToLocalTime();
 
-                                    if (_dateTimeKind == DateTimeKind.Local) {
-                                        // adjust to local time zone
-                                        dateValue = dateValue.ToLocalTime();
-                                    }
-                                }
-                                else if (_dateTimeKind != dateValue.Kind) {
-                                    // convert to correct kind
-                                    dateValue = _dateTimeKind == DateTimeKind.Local
-                                        ? dateValue.ToLocalTime()
-                                        : dateValue.ToUniversalTime();
+                                if (_dateTimeKind == DateTimeKind.Utc) {
+                                    // back to original value with Kind = Utc
+                                    dateValue = dateValue.ToUniversalTime();
                                 }
                             }
+                            else {
+                                // convert to correct kind
+                                dateValue = _dateTimeKind == DateTimeKind.Local
+                                    ? dateValue.ToLocalTime()
+                                    : dateValue.ToUniversalTime();
+                            }
+                        }
 
-                            DateTime? nullableDateValue = dateValue;
-                            right = left.Type == typeof(DateTime?)
-                                ? Expression.Constant(nullableDateValue, typeof(DateTime?))
-                                : Expression.Constant(dateValue, typeof(DateTime));
-                        }
-                        else {
-                            throw IncompatibleOperandsError(op.text, left, right, op.pos);
-                        }
+                        DateTime? nullableDateValue = dateValue;
+                        right = left.Type == typeof(DateTime?)
+                            ? Expression.Constant(nullableDateValue, typeof(DateTime?))
+                            : Expression.Constant(dateValue, typeof(DateTime));
                     }
                     else {
                         throw IncompatibleOperandsError(op.text, left, right, op.pos);
