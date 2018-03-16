@@ -318,35 +318,35 @@ namespace System.Linq.Dynamic {
     }
 
     public static class DynamicExpression {
-        //public static Expression Parse(Type resultType, string expression, params object[] values) {
-        //    return Parse(resultType, expression, DynamicQueryable.DateTimeKind, values);
-        //}
+        public static Expression Parse(Type resultType, string expression, params object[] values) {
+            return Parse(resultType, expression, DynamicQueryable.DateTimeKind, values);
+        }
 
         public static Expression Parse(Type resultType, string expression, DateTimeKind dateTimeKind, params object[] values) {
             ExpressionParser parser = new ExpressionParser(null, expression, values, dateTimeKind);
             return parser.Parse(resultType);
         }
 
-        //public static LambdaExpression ParseLambda(Type itType, Type resultType, string expression, params object[] values) {
-        //    return ParseLambda(itType, resultType, expression, DynamicQueryable.DateTimeKind, values);
-        //}
+        public static LambdaExpression ParseLambda(Type itType, Type resultType, string expression, params object[] values) {
+            return ParseLambda(itType, resultType, expression, DynamicQueryable.DateTimeKind, values);
+        }
 
         public static LambdaExpression ParseLambda(Type itType, Type resultType, string expression, DateTimeKind dateTimeKind, params object[] values) {
             return ParseLambda(new ParameterExpression[] { Expression.Parameter(itType, "") }, resultType, expression, dateTimeKind, values);
         }
 
-        //public static LambdaExpression ParseLambda(ParameterExpression[] parameters, Type resultType, string expression, params object[] values) {
-        //    return ParseLambda(parameters, resultType, expression, DynamicQueryable.DateTimeKind, values);
-        //}
+        public static LambdaExpression ParseLambda(ParameterExpression[] parameters, Type resultType, string expression, params object[] values) {
+            return ParseLambda(parameters, resultType, expression, DynamicQueryable.DateTimeKind, values);
+        }
 
         public static LambdaExpression ParseLambda(ParameterExpression[] parameters, Type resultType, string expression, DateTimeKind dateTimeKind, params object[] values) {
             ExpressionParser parser = new ExpressionParser(parameters, expression, values, dateTimeKind);
             return Expression.Lambda(parser.Parse(resultType), parameters);
         }
 
-        //public static Expression<Func<T, S>> ParseLambda<T, S>(string expression, params object[] values) {
-        //    return ParseLambda<T, S>(expression, DynamicQueryable.DateTimeKind, values);
-        //}
+        public static Expression<Func<T, S>> ParseLambda<T, S>(string expression, params object[] values) {
+            return ParseLambda<T, S>(expression, DynamicQueryable.DateTimeKind, values);
+        }
 
         public static Expression<Func<T, S>> ParseLambda<T, S>(string expression, DateTimeKind dateTimeKind, params object[] values) {
             return (Expression<Func<T, S>>)ParseLambda(typeof(T), typeof(S), expression, dateTimeKind, values);
