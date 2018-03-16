@@ -12,24 +12,24 @@ namespace System.Linq.Dynamic {
 
     public static class DynamicQueryable {
         // most developers use local time while persisting DateTimes (DateTime.Now), so we default to that
-        public static DateTimeKind DateTimeKind = DateTimeKind.Local;
+        public static DateTimeType DateTimeType = DateTimeType.Local;
 
         public static IQueryable<T> Where<T>(this IQueryable<T> source, string predicate, params object[] values) {
-            return Where(source, predicate, DateTimeKind, values);
+            return Where(source, predicate, DateTimeType, values);
         }
 
-        public static IQueryable<T> Where<T>(this IQueryable<T> source, string predicate, DateTimeKind dateTimeKind, params object[] values) {
-            return (IQueryable<T>)Where((IQueryable)source, predicate, dateTimeKind, values);
+        public static IQueryable<T> Where<T>(this IQueryable<T> source, string predicate, DateTimeType dateTimeType, params object[] values) {
+            return (IQueryable<T>)Where((IQueryable)source, predicate, dateTimeType, values);
         }
 
         public static IQueryable Where(this IQueryable source, string predicate, params object[] values) {
-            return Where(source, predicate, DateTimeKind, values);
+            return Where(source, predicate, DateTimeType, values);
         }
 
-        public static IQueryable Where(this IQueryable source, string predicate, DateTimeKind dateTimeKind, params object[] values) {
+        public static IQueryable Where(this IQueryable source, string predicate, DateTimeType dateTimeType, params object[] values) {
             if (source == null) throw new ArgumentNullException("source");
             if (predicate == null) throw new ArgumentNullException("predicate");
-            LambdaExpression lambda = DynamicExpression.ParseLambda(source.ElementType, typeof(bool), predicate, dateTimeKind, values);
+            LambdaExpression lambda = DynamicExpression.ParseLambda(source.ElementType, typeof(bool), predicate, dateTimeType, values);
             return source.Provider.CreateQuery(
                 Expression.Call(
                     typeof(Queryable), "Where",
@@ -38,13 +38,13 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable Select(this IQueryable source, string selector, params object[] values) {
-            return Select(source, selector, DateTimeKind, values);
+            return Select(source, selector, DateTimeType, values);
         }
 
-        public static IQueryable Select(this IQueryable source, string selector, DateTimeKind dateTimeKind, params object[] values) {
+        public static IQueryable Select(this IQueryable source, string selector, DateTimeType dateTimeType, params object[] values) {
             if (source == null) throw new ArgumentNullException("source");
             if (selector == null) throw new ArgumentNullException("selector");
-            LambdaExpression lambda = DynamicExpression.ParseLambda(source.ElementType, null, selector, dateTimeKind, values);
+            LambdaExpression lambda = DynamicExpression.ParseLambda(source.ElementType, null, selector, dateTimeType, values);
             return source.Provider.CreateQuery(
                 Expression.Call(
                     typeof(Queryable), "Select",
@@ -54,16 +54,16 @@ namespace System.Linq.Dynamic {
 
 
         public static IQueryable SelectMany(this IQueryable source, string selector, params object[] values) {
-            return SelectMany(source, selector, DateTimeKind, values);
+            return SelectMany(source, selector, DateTimeType, values);
         }
 
-        public static IQueryable SelectMany(this IQueryable source, string selector, DateTimeKind dateTimeKind, params object[] values) {
+        public static IQueryable SelectMany(this IQueryable source, string selector, DateTimeType dateTimeType, params object[] values) {
             if (source == null) throw new ArgumentNullException("source");
             if (selector == null) throw new ArgumentNullException("selector");
 
             // Parse the lambda
             LambdaExpression lambda =
-                DynamicExpression.ParseLambda(source.ElementType, null, selector, dateTimeKind, values);
+                DynamicExpression.ParseLambda(source.ElementType, null, selector, dateTimeType, values);
 
             // Fix lambda by recreating to be of correct Func<> type in case 
             // the expression parsed to something other than IEnumerable<T>.
@@ -85,23 +85,23 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable<T> OrderBy<T>(this IQueryable<T> source, string ordering, params object[] values) {
-            return OrderBy(source, ordering, DateTimeKind, values);
+            return OrderBy(source, ordering, DateTimeType, values);
         }
 
-        public static IQueryable<T> OrderBy<T>(this IQueryable<T> source, string ordering, DateTimeKind dateTimeKind, params object[] values) {
-            return (IQueryable<T>)OrderBy((IQueryable)source, ordering, dateTimeKind, values);
+        public static IQueryable<T> OrderBy<T>(this IQueryable<T> source, string ordering, DateTimeType dateTimeType, params object[] values) {
+            return (IQueryable<T>)OrderBy((IQueryable)source, ordering, dateTimeType, values);
         }
 
         public static IQueryable OrderBy(this IQueryable source, string ordering, params object[] values) {
-            return OrderBy(source, ordering, DateTimeKind, values);
+            return OrderBy(source, ordering, DateTimeType, values);
         }
 
-        public static IQueryable OrderBy(this IQueryable source, string ordering, DateTimeKind dateTimeKind, params object[] values) {
+        public static IQueryable OrderBy(this IQueryable source, string ordering, DateTimeType dateTimeType, params object[] values) {
             if (source == null) throw new ArgumentNullException("source");
             if (ordering == null) throw new ArgumentNullException("ordering");
             ParameterExpression[] parameters = new ParameterExpression[] {
                 Expression.Parameter(source.ElementType, "") };
-            ExpressionParser parser = new ExpressionParser(parameters, ordering, values, dateTimeKind);
+            ExpressionParser parser = new ExpressionParser(parameters, ordering, values, dateTimeType);
             IEnumerable<DynamicOrdering> orderings = parser.ParseOrdering();
             Expression queryExpr = source.Expression;
             string methodAsc;
@@ -148,15 +148,15 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable GroupBy(this IQueryable source, string keySelector, string elementSelector, params object[] values) {
-            return GroupBy(source, keySelector, elementSelector, DateTimeKind, values);
+            return GroupBy(source, keySelector, elementSelector, DateTimeType, values);
         }
 
-        public static IQueryable GroupBy(this IQueryable source, string keySelector, string elementSelector, DateTimeKind dateTimeKind, params object[] values) {
+        public static IQueryable GroupBy(this IQueryable source, string keySelector, string elementSelector, DateTimeType dateTimeType, params object[] values) {
             if (source == null) throw new ArgumentNullException("source");
             if (keySelector == null) throw new ArgumentNullException("keySelector");
             if (elementSelector == null) throw new ArgumentNullException("elementSelector");
-            LambdaExpression keyLambda = DynamicExpression.ParseLambda(source.ElementType, null, keySelector, dateTimeKind, values);
-            LambdaExpression elementLambda = DynamicExpression.ParseLambda(source.ElementType, null, elementSelector, dateTimeKind, values);
+            LambdaExpression keyLambda = DynamicExpression.ParseLambda(source.ElementType, null, keySelector, dateTimeType, values);
+            LambdaExpression elementLambda = DynamicExpression.ParseLambda(source.ElementType, null, elementSelector, dateTimeType, values);
             return source.Provider.CreateQuery(
                 Expression.Call(
                     typeof(Queryable), "GroupBy",
@@ -165,21 +165,21 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable<T> SkipWhile<T>(this IQueryable<T> source, string predicate, params object[] values) {
-            return SkipWhile(source, predicate, DateTimeKind, values);
+            return SkipWhile(source, predicate, DateTimeType, values);
         }
 
-        public static IQueryable<T> SkipWhile<T>(this IQueryable<T> source, string predicate, DateTimeKind dateTimeKind, params object[] values) {
-            return (IQueryable<T>)SkipWhile((IQueryable)source, predicate, dateTimeKind, values);
+        public static IQueryable<T> SkipWhile<T>(this IQueryable<T> source, string predicate, DateTimeType dateTimeType, params object[] values) {
+            return (IQueryable<T>)SkipWhile((IQueryable)source, predicate, dateTimeType, values);
         }
 
         public static IQueryable SkipWhile(this IQueryable source, string predicate, params object[] values) {
-            return SkipWhile(source, predicate, DateTimeKind, values);
+            return SkipWhile(source, predicate, DateTimeType, values);
         }
 
-        public static IQueryable SkipWhile(this IQueryable source, string predicate, DateTimeKind dateTimeKind, params object[] values) {
+        public static IQueryable SkipWhile(this IQueryable source, string predicate, DateTimeType dateTimeType, params object[] values) {
             if (source == null) throw new ArgumentNullException("source");
             if (predicate == null) throw new ArgumentNullException("predicate");
-            LambdaExpression lambda = DynamicExpression.ParseLambda(source.ElementType, typeof(bool), predicate, dateTimeKind, values);
+            LambdaExpression lambda = DynamicExpression.ParseLambda(source.ElementType, typeof(bool), predicate, dateTimeType, values);
             return source.Provider.CreateQuery(
                 Expression.Call(
                     typeof(Queryable), "SkipWhile",
@@ -188,20 +188,20 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable<T> TakeWhile<T>(this IQueryable<T> source, string predicate, params object[] values) {
-            return TakeWhile(source, predicate, DateTimeKind, values);
+            return TakeWhile(source, predicate, DateTimeType, values);
         }
-            public static IQueryable<T> TakeWhile<T>(this IQueryable<T> source, string predicate, DateTimeKind dateTimeKind, params object[] values) {
-            return (IQueryable<T>)TakeWhile((IQueryable)source, predicate, dateTimeKind, values);
+            public static IQueryable<T> TakeWhile<T>(this IQueryable<T> source, string predicate, DateTimeType dateTimeType, params object[] values) {
+            return (IQueryable<T>)TakeWhile((IQueryable)source, predicate, dateTimeType, values);
         }
 
         public static IQueryable TakeWhile(this IQueryable source, string predicate, params object[] values) {
-            return TakeWhile(source, predicate, DateTimeKind, values);
+            return TakeWhile(source, predicate, DateTimeType, values);
         }
 
-        public static IQueryable TakeWhile(this IQueryable source, string predicate, DateTimeKind dateTimeKind, params object[] values) {
+        public static IQueryable TakeWhile(this IQueryable source, string predicate, DateTimeType dateTimeType, params object[] values) {
             if (source == null) throw new ArgumentNullException("source");
             if (predicate == null) throw new ArgumentNullException("predicate");
-            LambdaExpression lambda = DynamicExpression.ParseLambda(source.ElementType, typeof(bool), predicate, dateTimeKind, values);
+            LambdaExpression lambda = DynamicExpression.ParseLambda(source.ElementType, typeof(bool), predicate, dateTimeType, values);
             return source.Provider.CreateQuery(
                 Expression.Call(
                     typeof(Queryable), "TakeWhile",
@@ -210,10 +210,10 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable Join(this IQueryable source1, string alias1, IQueryable source2, string alias2, string key1, string key2, string selector, params object[] args) {
-            return Join(source1, alias1, source2, alias2, key1, key2, selector, DateTimeKind, args);
+            return Join(source1, alias1, source2, alias2, key1, key2, selector, DateTimeType, args);
         }
 
-        public static IQueryable Join(this IQueryable source1, string alias1, IQueryable source2, string alias2, string key1, string key2, string selector, DateTimeKind dateTimeKind, params object[] args) {
+        public static IQueryable Join(this IQueryable source1, string alias1, IQueryable source2, string alias2, string key1, string key2, string selector, DateTimeType dateTimeType, params object[] args) {
             if (source1 == null) throw new ArgumentNullException("source1");
             if (alias1 == null) throw new ArgumentNullException("alias1");
             if (source2 == null) throw new ArgumentNullException("source1");
@@ -223,10 +223,10 @@ namespace System.Linq.Dynamic {
             if (selector == null) throw new ArgumentNullException("selector");
             ParameterExpression p1 = Expression.Parameter(source1.ElementType, alias1);
             ParameterExpression p2 = Expression.Parameter(source2.ElementType, alias2);
-            LambdaExpression keyLambda1 = DynamicExpression.ParseLambda(new ParameterExpression[] { p1 }, null, key1, dateTimeKind, null);
-            LambdaExpression keyLambda2 = DynamicExpression.ParseLambda(new ParameterExpression[] { p2 }, null, key2, dateTimeKind, null);
+            LambdaExpression keyLambda1 = DynamicExpression.ParseLambda(new ParameterExpression[] { p1 }, null, key1, dateTimeType, null);
+            LambdaExpression keyLambda2 = DynamicExpression.ParseLambda(new ParameterExpression[] { p2 }, null, key2, dateTimeType, null);
             FixLambdaReturnTypes(ref keyLambda1, ref keyLambda2);
-            LambdaExpression lambda = DynamicExpression.ParseLambda(new ParameterExpression[] { p1, p2 }, null, selector, dateTimeKind, args);
+            LambdaExpression lambda = DynamicExpression.ParseLambda(new ParameterExpression[] { p1, p2 }, null, selector, dateTimeType, args);
             return source1.Provider.CreateQuery(
               Expression.Call(
                 typeof(Queryable), "Join",
@@ -244,12 +244,12 @@ namespace System.Linq.Dynamic {
         }
 
         public static bool All(this IQueryable source, string predicate, params object[] values) {
-            return All(source, predicate, DateTimeKind, values);
+            return All(source, predicate, DateTimeType, values);
         }
 
-        public static bool All(this IQueryable source, string predicate, DateTimeKind dateTimeKind, params object[] values) {
+        public static bool All(this IQueryable source, string predicate, DateTimeType dateTimeType, params object[] values) {
             if (source == null) throw new ArgumentNullException("source");
-            var lambda = DynamicExpression.ParseLambda(source.ElementType, typeof(bool), predicate, dateTimeKind, values);
+            var lambda = DynamicExpression.ParseLambda(source.ElementType, typeof(bool), predicate, dateTimeType, values);
             return source.Provider.Execute<bool>(
                 Expression.Call(
                     typeof(Queryable), "All",
@@ -319,37 +319,37 @@ namespace System.Linq.Dynamic {
 
     public static class DynamicExpression {
         public static Expression Parse(Type resultType, string expression, params object[] values) {
-            return Parse(resultType, expression, DynamicQueryable.DateTimeKind, values);
+            return Parse(resultType, expression, DynamicQueryable.DateTimeType, values);
         }
 
-        public static Expression Parse(Type resultType, string expression, DateTimeKind dateTimeKind, params object[] values) {
-            ExpressionParser parser = new ExpressionParser(null, expression, values, dateTimeKind);
+        public static Expression Parse(Type resultType, string expression, DateTimeType dateTimeType, params object[] values) {
+            ExpressionParser parser = new ExpressionParser(null, expression, values, dateTimeType);
             return parser.Parse(resultType);
         }
 
         public static LambdaExpression ParseLambda(Type itType, Type resultType, string expression, params object[] values) {
-            return ParseLambda(itType, resultType, expression, DynamicQueryable.DateTimeKind, values);
+            return ParseLambda(itType, resultType, expression, DynamicQueryable.DateTimeType, values);
         }
 
-        public static LambdaExpression ParseLambda(Type itType, Type resultType, string expression, DateTimeKind dateTimeKind, params object[] values) {
-            return ParseLambda(new ParameterExpression[] { Expression.Parameter(itType, "") }, resultType, expression, dateTimeKind, values);
+        public static LambdaExpression ParseLambda(Type itType, Type resultType, string expression, DateTimeType dateTimeType, params object[] values) {
+            return ParseLambda(new ParameterExpression[] { Expression.Parameter(itType, "") }, resultType, expression, dateTimeType, values);
         }
 
         public static LambdaExpression ParseLambda(ParameterExpression[] parameters, Type resultType, string expression, params object[] values) {
-            return ParseLambda(parameters, resultType, expression, DynamicQueryable.DateTimeKind, values);
+            return ParseLambda(parameters, resultType, expression, DynamicQueryable.DateTimeType, values);
         }
 
-        public static LambdaExpression ParseLambda(ParameterExpression[] parameters, Type resultType, string expression, DateTimeKind dateTimeKind, params object[] values) {
-            ExpressionParser parser = new ExpressionParser(parameters, expression, values, dateTimeKind);
+        public static LambdaExpression ParseLambda(ParameterExpression[] parameters, Type resultType, string expression, DateTimeType dateTimeType, params object[] values) {
+            ExpressionParser parser = new ExpressionParser(parameters, expression, values, dateTimeType);
             return Expression.Lambda(parser.Parse(resultType), parameters);
         }
 
         public static Expression<Func<T, S>> ParseLambda<T, S>(string expression, params object[] values) {
-            return ParseLambda<T, S>(expression, DynamicQueryable.DateTimeKind, values);
+            return ParseLambda<T, S>(expression, DynamicQueryable.DateTimeType, values);
         }
 
-        public static Expression<Func<T, S>> ParseLambda<T, S>(string expression, DateTimeKind dateTimeKind, params object[] values) {
-            return (Expression<Func<T, S>>)ParseLambda(typeof(T), typeof(S), expression, dateTimeKind, values);
+        public static Expression<Func<T, S>> ParseLambda<T, S>(string expression, DateTimeType dateTimeType, params object[] values) {
+            return (Expression<Func<T, S>>)ParseLambda(typeof(T), typeof(S), expression, dateTimeType, values);
         }
 
         public static Type CreateClass(IEnumerable<DynamicProperty> properties) {
@@ -754,9 +754,9 @@ namespace System.Linq.Dynamic {
         int textLen;
         char ch;
         Token token;
-        DateTimeKind _dateTimeKind;
+        DateTimeType _dateTimeType;
 
-        public ExpressionParser(ParameterExpression[] parameters, string expression, object[] values, DateTimeKind dateTimeKind) {
+        public ExpressionParser(ParameterExpression[] parameters, string expression, object[] values, DateTimeType dateTimeType) {
             if (expression == null) throw new ArgumentNullException("expression");
             if (keywords == null) keywords = CreateKeywords();
             symbols = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
@@ -765,7 +765,7 @@ namespace System.Linq.Dynamic {
             if (values != null) ProcessValues(values);
             text = expression;
             textLen = text.Length;
-            _dateTimeKind = dateTimeKind;
+            _dateTimeType = dateTimeType;
 
             SetTextPos(0);
             NextToken();
@@ -919,22 +919,20 @@ namespace System.Linq.Dynamic {
                 }
                 else if ((left.Type == typeof(DateTime?) || left.Type == typeof(DateTime)) && right.Type == typeof(string)) {
                     if (right is ConstantExpression e && DateTime.TryParse(e.Value.ToString(), out var dateValue)) {
-                        if (_dateTimeKind != dateValue.Kind && _dateTimeKind != DateTimeKind.Unspecified) {
+                        if (_dateTimeType != DateTimeType.Unspecified) {
                             // accept unspecified dates as universal
                             if (dateValue.Kind == DateTimeKind.Unspecified) {
                                 // adjust to local time zone
                                 dateValue = dateValue.ToLocalTime();
-
-                                if (_dateTimeKind == DateTimeKind.Utc) {
-                                    // back to original value with Kind = Utc
-                                    dateValue = dateValue.ToUniversalTime();
-                                }
                             }
-                            else {
+
+                            if (_dateTimeType == DateTimeType.Utc) {
                                 // convert to correct kind
-                                dateValue = _dateTimeKind == DateTimeKind.Local
-                                    ? dateValue.ToLocalTime()
-                                    : dateValue.ToUniversalTime();
+                                dateValue = dateValue.ToUniversalTime();
+                            }
+                            else if (_dateTimeType == DateTimeType.ForceUtc) {
+                                // hack for EF Core bug, choose this to stop EF from adding zone info in Sql queries
+                                dateValue = DateTime.SpecifyKind(dateValue, DateTimeKind.Utc);
                             }
                         }
 

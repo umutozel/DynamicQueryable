@@ -93,26 +93,30 @@ namespace DynamicQueryable.Tests {
             var local = DateTime.Now.Date;
             var utc = local.ToUniversalTime();
             var unspecified = new DateTime(utc.Year, utc.Month, utc.Day, utc.Hour, utc.Minute, utc.Second, utc.Millisecond, DateTimeKind.Unspecified);
+            var forceUtc = DateTime.SpecifyKind(local, DateTimeKind.Utc);
             var orders = new List<Order> {
                 new Order {Id = 1, OrderDate = unspecified},
                 new Order {Id = 2, OrderDate = utc},
                 new Order {Id = 3, OrderDate = local},
+                new Order {Id = 4, OrderDate = forceUtc},
             }.AsQueryable();
 
             var unspecifiedStr = utc.ToString("yyyy-MM-ddTHH:mm:ss");
             var utcStr = utc.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
 
-            // Unspecified is assumed Utc
-            Assert.Equal(2, orders.Where($"OrderDate == \"{unspecifiedStr}\"", DateTimeKind.Unspecified).Count());
-            Assert.Equal(2, orders.Where($"OrderDate == \"{unspecifiedStr}\"", DateTimeKind.Utc).Count());
+            // Unspecified is left untouched
+            Assert.Equal(2, orders.Where($"OrderDate == \"{unspecifiedStr}\"", DateTimeType.Unspecified).Count());
+            Assert.Equal(2, orders.Where($"OrderDate == \"{unspecifiedStr}\"", DateTimeType.Utc).Count());
 
             // these unspecified dates should convert to local
-            Assert.Equal(3, orders.Where($"OrderDate == \"{unspecifiedStr}\"", DateTimeKind.Local).FirstOrDefault()?.Id);
+            Assert.Equal(3, orders.Where($"OrderDate == \"{unspecifiedStr}\"", DateTimeType.Local).FirstOrDefault()?.Id);
             Assert.Equal(3, orders.Where($"OrderDate == \"{unspecifiedStr}\"").FirstOrDefault()?.Id);
 
             // If string contains zone information, dates are parsed and converted to local dates
-            Assert.Equal(2, orders.Where($"OrderDate == \"{utcStr}\"", DateTimeKind.Utc).Count());
+            Assert.Equal(2, orders.Where($"OrderDate == \"{utcStr}\"", DateTimeType.Utc).Count());
             Assert.Equal(3, orders.Where($"OrderDate == \"{utcStr}\"").FirstOrDefault()?.Id);
+
+            Assert.Equal(2, orders.Where($"OrderDate == \"{utcStr}\"", DateTimeType.ForceUtc).Count());
         }
     }
 }
