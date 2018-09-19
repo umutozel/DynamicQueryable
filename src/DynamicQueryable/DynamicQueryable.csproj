@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Description>Construct Linq queries using strings.</Description>
+    <Authors>Umut Özel</Authors>
+    <Copyright>Copyright (c) 2018</Copyright>
+    <PackageLicenseUrl>https://github.com/umutozel/DynamicQueryable/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/umutozel/DynamicQueryable</PackageProjectUrl>
+    <PackageIconUrl>https://image.ibb.co/njzZCK/DynamicQueryable.png</PackageIconUrl>
+    <PackageTags>csharp expression linq string dynamic iqueryable</PackageTags>
+    <RepositoryUrl>https://github.com/umutozel/DynamicQueryable</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Jokenizer.Net" Version="1.0.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <DebugType>full</DebugType>
+    <DebugSymbols>True</DebugSymbols>
+  </PropertyGroup>
+  
+</Project>
