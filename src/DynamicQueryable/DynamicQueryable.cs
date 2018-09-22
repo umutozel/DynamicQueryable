@@ -102,7 +102,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable<object> OrderBy(this IQueryable source, string ordering, params object[] values) {
-            return OrderBy(source, ordering, values);
+            return OrderBy(source, ordering, null, values);
         }
 
         public static IQueryable<object> OrderBy(this IQueryable source, string ordering, Dictionary<string, object> variables, params object[] values) {
@@ -120,5 +120,31 @@ namespace System.Linq.Dynamic {
                 )
             );
         }
+
+        public static IQueryable Take(this IQueryable source, int count) {
+            if (source == null) throw new ArgumentNullException("source");
+
+            return source.Provider.CreateQuery(
+                Expression.Call(
+                    typeof(Queryable), 
+                    "Take",
+                    new Type[] { source.ElementType },
+                    source.Expression, Expression.Constant(count))
+                );
+        }
+
+        public static IQueryable Skip(this IQueryable source, int count) {
+            if (source == null) throw new ArgumentNullException("source");
+
+            return source.Provider.CreateQuery(
+                Expression.Call(
+                    typeof(Queryable), 
+                    "Skip",
+                    new Type[] { source.ElementType },
+                    source.Expression, Expression.Constant(count)
+                )
+            );
+        }
+
     }
 }
