@@ -33,10 +33,18 @@ namespace DynamicQueryable.Tests {
 
         [Fact]
         public void ShouldHandleSelect() {
-            var order = _query.Select(o => new { o.Id, o.OrderDate }).First();
-            var dynOrder = (dynamic)_query.Select("o => new { Id = o.Id, OrderDate = o.OrderDate }").First();
+            var order = _query.Select(o => new { Id = o.Id, OrderDate = o.OrderDate }).First();
+            var dynOrder = _query.Select("o => new { Id = o.Id, OrderDate = o.OrderDate }").First();
 
             Assert.Equal(order.OrderDate, order.OrderDate);
+        }
+
+        [Fact]
+        public void ShouldHandleSelectMany() {
+            var count = _query.SelectMany(o => o.Lines).Count();
+            var dynCount = _query.SelectMany("o => o.Lines").Count();
+
+            Assert.Equal(count, dynCount);
         }
     }
 }
