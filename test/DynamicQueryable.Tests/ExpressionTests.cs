@@ -46,5 +46,13 @@ namespace DynamicQueryable.Tests {
 
             Assert.Equal(count, dynCount);
         }
+
+        [Fact]
+        public void ShouldHandleOrderBy() {
+            var order = _query.OrderBy(o => o.Id).First();
+            var dynOrder = _query.OrderBy("o => o.Id").First();
+
+            Assert.Equal(order.Id, dynOrder.Id);
+        }
     }
 }

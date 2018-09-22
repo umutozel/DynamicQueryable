@@ -92,5 +92,33 @@ namespace System.Linq.Dynamic {
                 )
             );
         }
+
+        public static IQueryable<T> OrderBy<T>(this IQueryable<T> source, string ordering, params object[] values) {
+            return OrderBy(source, ordering, null, values);
+        }
+
+        public static IQueryable<T> OrderBy<T>(this IQueryable<T> source, string ordering, Dictionary<string, object> variables, params object[] values) {
+            return (IQueryable<T>)OrderBy((IQueryable)source, ordering, variables, values);
+        }
+
+        public static IQueryable<object> OrderBy(this IQueryable source, string ordering, params object[] values) {
+            return OrderBy(source, ordering, values);
+        }
+
+        public static IQueryable<object> OrderBy(this IQueryable source, string ordering, Dictionary<string, object> variables, params object[] values) {
+            if (source == null) throw new ArgumentNullException("source");
+            if (ordering == null) throw new ArgumentNullException("ordering");
+
+            var lambda = Evaluator.ToLambda(ordering, new[] { source.ElementType }, variables, values);
+            return (IQueryable<object>)source.Provider.CreateQuery(
+                Expression.Call(
+                    typeof(Queryable),
+                    "OrderBy",
+                    new[] { source.ElementType, lambda.ReturnType },
+                    source.Expression,
+                    Expression.Quote(lambda)
+                )
+            );
+        }
     }
 }
