@@ -22,11 +22,38 @@ namespace System.Linq.Dynamic {
             return WhereImpl(source, predicate, variables, parameters);
         }
 
-        public static IQueryable WhereImpl(IQueryable source, string predicate, IDictionary<string, object> variables, params object[] parameters) {
+        private static IQueryable WhereImpl(IQueryable source, string predicate, IDictionary<string, object> variables, params object[] parameters) {
+            if (source == null) throw new ArgumentNullException("source");
+            if (predicate == null) throw new ArgumentNullException("predicate");
+
             var types = new[] { source.ElementType };
             var lambda = Evaluator.ToLambda(predicate, types, variables, parameters);
             return source.Provider.CreateQuery(
-                Expression.Call(typeof(Queryable), "Where", types, source.Expression, Expression.Quote(lambda))
+                Expression.Call(typeof(Queryable), 
+                "Where", 
+                types, 
+                source.Expression, 
+                Expression.Quote(lambda))
+            );
+        }
+
+        public static IQueryable<object> Select(this IQueryable source, string selector, params object[] values) {
+            return Select(source, selector, null, values);
+        }
+
+        public static IQueryable<object> Select(this IQueryable source, string selector, IDictionary<string, object> variables, params object[] values) {
+            if (source == null) throw new ArgumentNullException("source");
+            if (selector == null) throw new ArgumentNullException("selector");
+            
+            var lambda = Evaluator.ToLambda(selector, new[] { source.ElementType }, variables, values);
+            return (IQueryable<object>)source.Provider.CreateQuery(
+                Expression.Call(
+                    typeof(Queryable), 
+                    "Select", 
+                    new[] { source.ElementType, lambda.Body.Type }, 
+                    source.Expression, 
+                    Expression.Quote(lambda)
+                )
             );
         }
     }

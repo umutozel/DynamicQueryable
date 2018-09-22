@@ -24,11 +24,19 @@ namespace DynamicQueryable.Tests {
         }
 
         [Fact]
-        public void ShouldFilterUsingOr() {
+        public void ShouldHandleWhere() {
             var count = _query.Where(o => o.Id >= 0 || o.Price % 2 == 0).Count();
             var dynCount = _query.Where("Id >= 0 || Price%2 == 0").Count();
 
             Assert.Equal(count, dynCount);
+        }
+
+        [Fact]
+        public void ShouldHandleSelect() {
+            var order = _query.Select(o => new { o.Id, o.OrderDate }).First();
+            var dynOrder = (dynamic)_query.Select("o => new { Id = o.Id, OrderDate = o.OrderDate }").First();
+
+            Assert.Equal(order.OrderDate, order.OrderDate);
         }
     }
 }
