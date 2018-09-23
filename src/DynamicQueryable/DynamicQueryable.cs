@@ -10,15 +10,7 @@ namespace System.Linq.Dynamic {
             return (IQueryable<T>)source;
         }
 
-        public static IQueryable Take(this IQueryable source, int count) {
-            return HandleConstant(source, "Take", count);
-        }
-
-        public static IQueryable Skip(this IQueryable source, int count) {
-            return HandleConstant(source, "Skip", count);
-        }
-
-        public static IQueryable HandleConstant(this IQueryable source, string method, int count) {
+        public static IQueryable HandleConstant(this IQueryable source, string method, object value) {
             if (source == null) throw new ArgumentNullException(nameof(source));
 
             return source.Provider.CreateQuery(
@@ -27,7 +19,7 @@ namespace System.Linq.Dynamic {
                     method,
                     new[] { source.ElementType },
                     source.Expression,
-                    Expression.Constant(count)
+                    Expression.Constant(value)
                 )
             );
         }
