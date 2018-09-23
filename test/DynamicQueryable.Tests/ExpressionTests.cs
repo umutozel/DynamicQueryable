@@ -288,5 +288,39 @@ namespace DynamicQueryable.Tests {
             Assert.Throws<InvalidOperationException>(() => query.Single("o => o.Id > 1"));
             Assert.Throws<InvalidOperationException>(() => ((IQueryable)query).Single("o => o.Id > 1"));
         }
+
+        [Fact]
+        public void ShouldExecuteLast() {
+            var order = _query.Last(o => o.Id < AvgId);
+            var dynOrder1 = _query.Last("o => o.Id < AvgId", new Dictionary<string, object> { { "AvgId", AvgId } });
+            var dynOrder2 = ((IQueryable)_query).Last("Id < @0", AvgId);
+            var dynOrder3 = ((IQueryable)_query).Last();
+
+            Assert.Equal(order, dynOrder1);
+            Assert.Equal(order, dynOrder2);
+            Assert.Equal(_query.Last(), dynOrder3);
+
+            Assert.Throws<InvalidOperationException>(() => _query.Take(0).Last());
+            Assert.Throws<InvalidOperationException>(() => ((IQueryable)_query.Take(0)).Last());
+            Assert.Throws<InvalidOperationException>(() => _query.Take(0).Last("Id == 1"));
+            Assert.Throws<InvalidOperationException>(() => ((IQueryable)_query.Take(0)).Last("Id == 1"));
+        }
+
+        [Fact]
+        public void ShouldExecuteLastOrDefault() {
+            var order = _query.LastOrDefault(o => o.Id < AvgId);
+            var dynOrder1 = _query.LastOrDefault("o => o.Id < AvgId", new Dictionary<string, object> { { "AvgId", AvgId } });
+            var dynOrder2 = ((IQueryable)_query).LastOrDefault("Id < @0", AvgId);
+            var dynOrder3 = ((IQueryable)_query).LastOrDefault();
+
+            Assert.Equal(order, dynOrder1);
+            Assert.Equal(order, dynOrder2);
+            Assert.Equal(_query.LastOrDefault(), dynOrder3);
+
+            Assert.Null(_query.Take(0).LastOrDefault());
+            Assert.Null(((IQueryable)_query.Take(0)).LastOrDefault());
+            Assert.Null(_query.Take(0).LastOrDefault("Id == 1"));
+            Assert.Null(((IQueryable)_query.Take(0)).LastOrDefault("Id == 1"));
+        }
     }
 }

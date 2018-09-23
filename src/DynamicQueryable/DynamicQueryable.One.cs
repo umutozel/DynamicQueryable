@@ -83,7 +83,23 @@ namespace System.Linq.Dynamic {
         }
 
         public static object Last(this IQueryable source, string predicate, IDictionary<string, object> variables, params object[] values) {
-            return ExecuteLambda(source, "Last", predicate, false, variables, values);
+            return ExecuteLambda(source, "Last", predicate, string.IsNullOrEmpty(predicate), variables, values);
+        }
+
+        public static object LastOrDefault<T>(this IQueryable<T> source, string predicate, params object[] values) {
+            return LastOrDefault(source, predicate, null, values);
+        }
+
+        public static object LastOrDefault<T>(this IQueryable<T> source, string predicate, IDictionary<string, object> variables, params object[] values) {
+            return LastOrDefault((IQueryable)source, predicate, variables, values);
+        }
+
+        public static object LastOrDefault(this IQueryable source, string predicate = null, params object[] values) {
+            return LastOrDefault(source, predicate, null, values);
+        }
+
+        public static object LastOrDefault(this IQueryable source, string predicate, IDictionary<string, object> variables, params object[] values) {
+            return ExecuteLambda(source, "LastOrDefault", predicate, string.IsNullOrEmpty(predicate), variables, values);
         }
     }
 }
