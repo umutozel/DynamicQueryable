@@ -11,25 +11,20 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable Take(this IQueryable source, int count) {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-
-            return source.Provider.CreateQuery(
-                Expression.Call(
-                    typeof(Queryable),
-                    "Take",
-                    new[] { source.ElementType },
-                    source.Expression,
-                    Expression.Constant(count))
-                );
+            return HandleConstant(source, "Take", count);
         }
 
         public static IQueryable Skip(this IQueryable source, int count) {
+            return HandleConstant(source, "Skip", count);
+        }
+
+        public static IQueryable HandleConstant(this IQueryable source, string method, int count) {
             if (source == null) throw new ArgumentNullException(nameof(source));
 
             return source.Provider.CreateQuery(
                 Expression.Call(
                     typeof(Queryable),
-                    "Skip",
+                    method,
                     new[] { source.ElementType },
                     source.Expression,
                     Expression.Constant(count)
