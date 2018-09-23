@@ -23,8 +23,8 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable Where(IQueryable source, string predicate, IDictionary<string, object> variables, params object[] parameters) {
-            if (source == null) throw new ArgumentNullException("source");
-            if (predicate == null) throw new ArgumentNullException("predicate");
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
 
             var types = new[] { source.ElementType };
             var lambda = Evaluator.ToLambda(predicate, types, variables, parameters);
@@ -43,8 +43,8 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable Select(this IQueryable source, string selector, IDictionary<string, object> variables, params object[] values) {
-            if (source == null) throw new ArgumentNullException("source");
-            if (selector == null) throw new ArgumentNullException("selector");
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (selector == null) throw new ArgumentNullException(nameof(selector));
 
             var lambda = Evaluator.ToLambda(selector, new[] { source.ElementType }, variables, values);
 
@@ -72,8 +72,8 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable SelectMany(this IQueryable source, string selector, Dictionary<string, object> variables, params object[] values) {
-            if (source == null) throw new ArgumentNullException("source");
-            if (selector == null) throw new ArgumentNullException("selector");
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (selector == null) throw new ArgumentNullException(nameof(selector));
 
             var lambda = Evaluator.ToLambda(selector, new[] { source.ElementType }, variables, values);
 
@@ -112,8 +112,8 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable OrderBy(this IQueryable source, string ordering, Dictionary<string, object> variables, params object[] values) {
-            if (source == null) throw new ArgumentNullException("source");
-            if (ordering == null) throw new ArgumentNullException("ordering");
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (ordering == null) throw new ArgumentNullException(nameof(ordering));
 
             var lambda = Evaluator.ToLambda(ordering, new[] { source.ElementType }, variables, values);
 
@@ -129,7 +129,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable Take(this IQueryable source, int count) {
-            if (source == null) throw new ArgumentNullException("source");
+            if (source == null) throw new ArgumentNullException(nameof(source));
 
             return source.Provider.CreateQuery(
                 Expression.Call(
@@ -142,7 +142,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable Skip(this IQueryable source, int count) {
-            if (source == null) throw new ArgumentNullException("source");
+            if (source == null) throw new ArgumentNullException(nameof(source));
 
             return source.Provider.CreateQuery(
                 Expression.Call(
@@ -160,10 +160,10 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable GroupBy(this IQueryable source, string keySelector, string elementSelector, string resultSelector, IDictionary<string, object> variables, params object[] values) {
-            if (source == null) throw new ArgumentNullException("source");
-            if (keySelector == null) throw new ArgumentNullException("keySelector");
-            if (elementSelector == null) throw new ArgumentNullException("elementSelector");
-            if (elementSelector == null) throw new ArgumentNullException("resultSelector");
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
+            if (elementSelector == null) throw new ArgumentNullException(nameof(elementSelector));
+            if (elementSelector == null) throw new ArgumentNullException(nameof(resultSelector));
 
             var keyLambda = Evaluator.ToLambda(keySelector, new[] { source.ElementType }, variables, values);
             var elementLambda = Evaluator.ToLambda(elementSelector, new[] { source.ElementType }, variables, values);
@@ -188,9 +188,9 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable GroupBy(this IQueryable source, string keySelector, string resultSelector, IDictionary<string, object> variables, params object[] values) {
-            if (source == null) throw new ArgumentNullException("source");
-            if (keySelector == null) throw new ArgumentNullException("keySelector");
-            if (resultSelector == null) throw new ArgumentNullException("resultSelector");
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
+            if (resultSelector == null) throw new ArgumentNullException(nameof(resultSelector));
 
             var keyLambda = Evaluator.ToLambda(keySelector, new[] { source.ElementType }, variables, values);
             var enumSourceType = typeof(IEnumerable<>).MakeGenericType(source.ElementType);
@@ -213,8 +213,8 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable GroupBy(this IQueryable source, string keySelector, IDictionary<string, object> variables, params object[] values) {
-            if (source == null) throw new ArgumentNullException("source");
-            if (keySelector == null) throw new ArgumentNullException("keySelector");
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
 
             var keyLambda = Evaluator.ToLambda(keySelector, new[] { source.ElementType }, variables, values);
 
@@ -242,8 +242,8 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable SkipWhile(this IQueryable source, string predicate, IDictionary<string, object> variables, params object[] values) {
-            if (source == null) throw new ArgumentNullException("source");
-            if (predicate == null) throw new ArgumentNullException("predicate");
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
 
             var types = new[] { source.ElementType };
             var lambda = Evaluator.ToLambda(predicate, types, variables, values);
@@ -272,8 +272,8 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable TakeWhile(this IQueryable source, string predicate, IDictionary<string, object> variables, params object[] values) {
-            if (source == null) throw new ArgumentNullException("source");
-            if (predicate == null) throw new ArgumentNullException("predicate");
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
 
             var types = new[] { source.ElementType };
             var lambda = Evaluator.ToLambda(predicate, types, variables, values);
