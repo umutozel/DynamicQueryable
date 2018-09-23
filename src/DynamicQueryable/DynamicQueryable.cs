@@ -26,35 +26,27 @@ namespace System.Linq.Dynamic {
             );
         }
 
-        public static IQueryable HandleConstant(this IQueryable source, string method, object value) {
+        private static Expression CreateExpression(IQueryable source, string method, bool generic, params Expression[] expressions) {
             if (source == null) throw new ArgumentNullException(nameof(source));
 
-            return source.Provider.CreateQuery(
-                Expression.Call(
-                    typeof(Queryable),
-                    method,
-                    new[] { source.ElementType },
-                    source.Expression,
-                    Expression.Constant(value)
-                )
+            return Expression.Call(
+                typeof(Queryable),
+                method,
+                generic ? new[] { source.ElementType } : new Type[0],
+                new[] { source.Expression }.Concat(expressions).ToArray()
             );
+        }
+
+        private static IQueryable HandleConstant(IQueryable source, string method, object value) {
+            return source.Provider.CreateQuery(CreateExpression(source, method, true, Expression.Constant(value)));
         }
 
         private static IQueryable HandleLambda(IQueryable source, string method, string expression, bool generic, IDictionary<string, object> variables, object[] values) {
             return source.Provider.CreateQuery(CreateLambda(source, method, expression, generic, variables, values));
         }
 
-        private static object Execute(this IQueryable source, string method, bool generic) {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-
-            return source.Provider.Execute(
-                Expression.Call(
-                    typeof(Queryable),
-                    method,
-                    generic ? new[] { source.ElementType } : new Type[] { },
-                    source.Expression
-                )
-            );
+        private static object Execute(IQueryable source, string method, bool generic) {
+            return source.Provider.Execute(CreateExpression(source, method, generic));
         }
 
         private static object ExecuteLambda(IQueryable source, string method, string expression, bool generic, IDictionary<string, object> variables, params object[] values) {
