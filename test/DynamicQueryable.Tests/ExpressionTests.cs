@@ -175,5 +175,19 @@ namespace DynamicQueryable.Tests {
             Assert.Equal(avg, dynAvg3);
             Assert.Equal(avg, dynAvg4);
         }
+
+        [Fact]
+        public void ShouldExecuteMax() {
+            var avg = _query.Max(o => o.Price);
+            var dynAvg1 = _query.Max("o => o.Price");
+            var dynAvg2 = ((IQueryable)_query).Select("o => o.Price").Max();
+            var dynAvg3 = _query.Max("o => o.Price");
+            var dynAvg4 = ((IQueryable)_query).Max("o => o.Price");
+
+            Assert.Equal(avg, dynAvg1);
+            Assert.Equal(avg, dynAvg2);
+            Assert.Equal(avg, dynAvg3);
+            Assert.Equal(avg, dynAvg4);
+        }
     }
 }
