@@ -45,11 +45,11 @@ namespace System.Linq.Dynamic {
             );
         }
 
-        private static object ExecuteSelector(this IQueryable source, string method, string selector, IDictionary<string, object> variables, params object[] values) {
+        private static object ExecuteSelector(this IQueryable source, string method, string selector, bool generic, IDictionary<string, object> variables, params object[] values) {
             if (source == null) throw new ArgumentNullException(nameof(source));
 
             if (string.IsNullOrEmpty(selector))
-                return Execute(source, method, false);
+                return Execute(source, method, generic);
 
             var types = new[] { source.ElementType };
             var lambda = Evaluator.ToLambda(selector, types, variables, values);
@@ -58,26 +58,7 @@ namespace System.Linq.Dynamic {
                 Expression.Call(
                     typeof(Queryable),
                     method,
-                    types,
-                    source.Expression,
-                    Expression.Quote(lambda)
-                )
-            );
-        }
-
-        private static object ExecuteGenericSelector(this IQueryable source, string method, string selector, IDictionary<string, object> variables, params object[] values) {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-
-            if (string.IsNullOrEmpty(selector))
-                return Execute(source, method, true);
-
-            var lambda = Evaluator.ToLambda(selector, new[] { source.ElementType }, variables, values);
-
-            return source.Provider.Execute(
-                Expression.Call(
-                    typeof(Queryable),
-                    method,
-                    new[] { source.ElementType, lambda.Body.Type },
+                    generic ? new[] { source.ElementType, lambda.Body.Type } : types,
                     source.Expression,
                     Expression.Quote(lambda)
                 )
