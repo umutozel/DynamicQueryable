@@ -6,14 +6,6 @@ namespace System.Linq.Dynamic {
 
     public static partial class DynamicQueryable {
 
-        public static IQueryable Select(this IQueryable source, string selector, params object[] values) {
-            return Select(source, selector, null, values);
-        }
-
-        public static IQueryable Select(this IQueryable source, string selector, IDictionary<string, object> variables, params object[] values) {
-            return HandleSelector(source, "Select", selector, variables, values);
-        }
-
         public static IQueryable<T> OrderBy<T>(this IQueryable<T> source, string selector, params object[] values) {
             return OrderBy(source, selector, null, values);
         }

@@ -10,6 +10,22 @@ namespace System.Linq.Dynamic {
             return (IQueryable<T>)source;
         }
 
+        private static Expression CreateLambda(IQueryable source, string method, string expression, bool customReturn, IDictionary<string, object> variables, params object[] values) {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+
+            var types = new[] { source.ElementType };
+            var lambda = Evaluator.ToLambda(expression, types, variables, values);
+
+            return Expression.Call(
+                typeof(Queryable),
+                method,
+                customReturn ? new[] { source.ElementType, lambda.Body.Type } : types,
+                source.Expression,
+                Expression.Quote(lambda)
+            );
+        }
+
         public static IQueryable HandleConstant(this IQueryable source, string method, object value) {
             if (source == null) throw new ArgumentNullException(nameof(source));
 
@@ -37,24 +53,13 @@ namespace System.Linq.Dynamic {
             );
         }
 
-        private static object ExecuteSelector(this IQueryable source, string method, string selector, bool generic, IDictionary<string, object> variables, params object[] values) {
+        private static object ExecuteExpression(IQueryable source, string method, string expression, bool customReturn, IDictionary<string, object> variables, params object[] values) {
             if (source == null) throw new ArgumentNullException(nameof(source));
 
-            if (string.IsNullOrEmpty(selector))
-                return Execute(source, method, generic);
+            if (string.IsNullOrEmpty(expression))
+                return Execute(source, method, customReturn);
 
-            var types = new[] { source.ElementType };
-            var lambda = Evaluator.ToLambda(selector, types, variables, values);
-
-            return source.Provider.Execute(
-                Expression.Call(
-                    typeof(Queryable),
-                    method,
-                    generic ? new[] { source.ElementType, lambda.Body.Type } : types,
-                    source.Expression,
-                    Expression.Quote(lambda)
-                )
-            );
+            return source.Provider.Execute(CreateLambda(source, method, expression, customReturn, variables, values));
         }
     }
 }
