@@ -19,7 +19,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable OrderBy(this IQueryable source, string selector, Dictionary<string, object> variables, params object[] values) {
-            return HandleSelector(source, "OrderBy", selector, variables, values);
+            return HandleLambda(source, "OrderBy", selector, true, variables, values);
         }
 
         public static IQueryable<T> OrderByDescending<T>(this IQueryable<T> source, string selector, params object[] values) {
@@ -35,7 +35,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable OrderByDescending(this IQueryable source, string selector, Dictionary<string, object> variables, params object[] values) {
-            return HandleSelector(source, "OrderByDescending", selector, variables, values);
+            return HandleLambda(source, "OrderByDescending", selector, true, variables, values);
         }
 
         public static IQueryable<T> ThenBy<T>(this IQueryable<T> source, string selector, params object[] values) {
@@ -51,7 +51,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable ThenBy(this IQueryable source, string selector, IDictionary<string, object> variables, params object[] values) {
-            return HandleSelector(source, "ThenBy", selector, variables, values);
+            return HandleLambda(source, "ThenBy", selector, true, variables, values);
         }
 
         public static IQueryable<T> ThenByDescending<T>(this IQueryable<T> source, string selector, params object[] values) {
@@ -67,24 +67,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable ThenByDescending(this IQueryable source, string selector, IDictionary<string, object> variables, params object[] values) {
-            return HandleSelector(source, "ThenByDescending", selector, variables, values);
-        }
-
-        public static IQueryable HandleSelector(this IQueryable source, string method, string selector, IDictionary<string, object> variables, params object[] values) {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            if (selector == null) throw new ArgumentNullException(nameof(selector));
-
-            var lambda = Evaluator.ToLambda(selector, new[] { source.ElementType }, variables, values);
-
-            return source.Provider.CreateQuery(
-                Expression.Call(
-                    typeof(Queryable),
-                    method,
-                    new[] { source.ElementType, lambda.ReturnType },
-                    source.Expression,
-                    Expression.Quote(lambda)
-                )
-            );
+            return HandleLambda(source, "ThenByDescending", selector, true, variables, values);
         }
     }
 }

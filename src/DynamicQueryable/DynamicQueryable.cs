@@ -40,6 +40,13 @@ namespace System.Linq.Dynamic {
             );
         }
 
+        private static IQueryable HandleLambda(IQueryable source, string method, string expression, bool customReturn, IDictionary<string, object> variables, object[] values) {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+
+            return source.Provider.CreateQuery(CreateLambda(source, method, expression, customReturn, variables, values));
+        }
+
         private static object Execute(this IQueryable source, string method, bool generic) {
             if (source == null) throw new ArgumentNullException(nameof(source));
 
