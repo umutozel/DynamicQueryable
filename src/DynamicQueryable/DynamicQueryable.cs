@@ -44,5 +44,25 @@ namespace System.Linq.Dynamic {
                 )
             );
         }
+
+        private static object ExecuteSelector(this IQueryable source, string method, string selector, IDictionary<string, object> variables, params object[] values) {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+
+            if (string.IsNullOrEmpty(selector))
+                return Execute(source, method);
+
+            var types = new[] { source.ElementType };
+            var lambda = Evaluator.ToLambda(selector, types, variables, values);
+
+            return source.Provider.Execute(
+                Expression.Call(
+                    typeof(Queryable),
+                    method,
+                    types,
+                    source.Expression,
+                    Expression.Quote(lambda)
+                )
+            );
+        }
     }
 }

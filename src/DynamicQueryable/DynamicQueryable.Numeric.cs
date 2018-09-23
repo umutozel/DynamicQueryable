@@ -22,24 +22,20 @@ namespace System.Linq.Dynamic {
             return ExecuteSelector(source, "Average", selector, variables, values);
         }
 
-        private static object ExecuteSelector(this IQueryable source, string method, string selector, IDictionary<string, object> variables, params object[] values) {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+        public static object Sum<T>(this IQueryable<T> source, string selector, params object[] values) {
+            return ExecuteSelector(source, "Sum", selector, null, values);
+        }
 
-            if (string.IsNullOrEmpty(selector))
-                return Execute(source, method);
+        public static object Sum<T>(this IQueryable<T> source, string selector, IDictionary<string, object> variables, params object[] values) {
+            return ExecuteSelector(source, "Sum", selector, variables, values);
+        }
 
-            var types = new[] { source.ElementType };
-            var lambda = Evaluator.ToLambda(selector, types, variables, values);
+        public static object Sum(this IQueryable source, string selector = null, params object[] values) {
+            return ExecuteSelector(source, "Sum", selector, null, values);
+        }
 
-            return source.Provider.Execute(
-                Expression.Call(
-                    typeof(Queryable),
-                    method,
-                    types,
-                    source.Expression,
-                    Expression.Quote(lambda)
-                )
-            );
+        public static object Sum(this IQueryable source, string selector, IDictionary<string, object> variables, params object[] values) {
+            return ExecuteSelector(source, "Sum", selector, variables, values);
         }
     }
 }
