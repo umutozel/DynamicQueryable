@@ -10,7 +10,7 @@ namespace System.Linq.Dynamic {
             return (IQueryable<T>)source;
         }
 
-        private static Expression CreateLambda(IQueryable source, string method, string expression, bool customReturn, IDictionary<string, object> variables, params object[] values) {
+        private static Expression CreateLambda(IQueryable source, string method, string expression, bool generic, IDictionary<string, object> variables, params object[] values) {
             if (source == null) throw new ArgumentNullException(nameof(source));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
 
@@ -20,7 +20,7 @@ namespace System.Linq.Dynamic {
             return Expression.Call(
                 typeof(Queryable),
                 method,
-                customReturn ? new[] { source.ElementType, lambda.Body.Type } : types,
+                generic ? new[] { source.ElementType, lambda.Body.Type } : types,
                 source.Expression,
                 Expression.Quote(lambda)
             );
@@ -41,9 +41,6 @@ namespace System.Linq.Dynamic {
         }
 
         private static IQueryable HandleLambda(IQueryable source, string method, string expression, bool customReturn, IDictionary<string, object> variables, object[] values) {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            if (expression == null) throw new ArgumentNullException(nameof(expression));
-
             return source.Provider.CreateQuery(CreateLambda(source, method, expression, customReturn, variables, values));
         }
 
@@ -60,13 +57,11 @@ namespace System.Linq.Dynamic {
             );
         }
 
-        private static object ExecuteExpression(IQueryable source, string method, string expression, bool customReturn, IDictionary<string, object> variables, params object[] values) {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-
+        private static object ExecuteLambda(IQueryable source, string method, string expression, bool generic, IDictionary<string, object> variables, params object[] values) {
             if (string.IsNullOrEmpty(expression))
-                return Execute(source, method, customReturn);
+                return Execute(source, method, generic);
 
-            return source.Provider.Execute(CreateLambda(source, method, expression, customReturn, variables, values));
+            return source.Provider.Execute(CreateLambda(source, method, expression, generic, variables, values));
         }
     }
 }

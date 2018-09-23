@@ -19,7 +19,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable Where(IQueryable source, string predicate, IDictionary<string, object> variables, params object[] values) {
-            return HandlePredicate(source, "Where", predicate, variables, values);
+            return HandleLambda(source, "Where", predicate, false, variables, values);
         }
 
         public static IQueryable<T> SkipWhile<T>(this IQueryable<T> source, string predicate, params object[] values) {
@@ -35,7 +35,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable SkipWhile(this IQueryable source, string predicate, IDictionary<string, object> variables, params object[] values) {
-            return HandlePredicate(source, "SkipWhile", predicate, variables, values);
+            return HandleLambda(source, "SkipWhile", predicate, false, variables, values);
         }
 
         public static IQueryable<T> TakeWhile<T>(this IQueryable<T> source, string predicate, params object[] values) {
@@ -51,25 +51,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable TakeWhile(this IQueryable source, string predicate, IDictionary<string, object> variables, params object[] values) {
-            return HandlePredicate(source, "TakeWhile", predicate, variables, values);
-        }
-
-        private static IQueryable HandlePredicate(this IQueryable source, string method, string predicate, IDictionary<string, object> variables, params object[] values) {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
-
-            var types = new[] { source.ElementType };
-            var lambda = Evaluator.ToLambda(predicate, types, variables, values);
-
-            return source.Provider.CreateQuery(
-                Expression.Call(
-                    typeof(Queryable),
-                    method,
-                    new Type[] { source.ElementType },
-                    source.Expression,
-                    Expression.Quote(lambda)
-                )
-            );
+            return HandleLambda(source, "TakeWhile", predicate, false, variables, values);
         }
     }
 }
