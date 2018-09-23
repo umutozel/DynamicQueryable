@@ -1,12 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic;
 using Giver;
 using Xunit;
 
 namespace DynamicQueryable.Tests {
-    using System.Collections.Generic;
     using Fixture;
+    using Dyn = System.Linq.Dynamic.DynamicQueryable;
 
     public class ExpressionTests {
         private readonly IQueryable<Order> _query;
@@ -24,6 +25,26 @@ namespace DynamicQueryable.Tests {
             AvgId = orders.Average(o => o.Id);
 
             _query = orders.AsQueryable();
+        }
+
+        [Fact]
+        public void ShouldThrowWhenSourceNull() {
+            Assert.Throws<ArgumentNullException>(() => Dyn.Where(_query, ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.First(null, "Id > 1"));
+            Assert.Throws<ArgumentNullException>(() => Dyn.Take(null, 1));
+
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(null, ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(_query, ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(null, "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(_query, "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(_query, "Id", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(null, "", "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(_query, "", "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(_query, "Id", "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(_query, "Id", "Id", ""));
+
+            Assert.Throws<ArgumentNullException>(() => Dyn.SelectMany(null, ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.SelectMany(_query, ""));
         }
 
         [Fact]

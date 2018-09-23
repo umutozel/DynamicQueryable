@@ -6,12 +6,12 @@ namespace System.Linq.Dynamic {
 
     public static partial class DynamicQueryable {
 
-        public static IQueryable<T> SelectMany<T>(this IQueryable source, string selector, params object[] values) {
-            return SelectMany<T>(source, selector, null, values);
+        public static IQueryable SelectMany<T>(this IQueryable<T> source, string selector, params object[] values) {
+            return SelectMany(source, selector, null, values);
         }
 
-        public static IQueryable<T> SelectMany<T>(this IQueryable source, string selector, Dictionary<string, object> variables, params object[] values) {
-            return (IQueryable<T>)SelectMany((IQueryable)source, selector, null, values);
+        public static IQueryable SelectMany<T>(this IQueryable<T> source, string selector, Dictionary<string, object> variables, params object[] values) {
+            return SelectMany((IQueryable)source, selector, null, values);
         }
 
         public static IQueryable SelectMany(this IQueryable source, string selector, params object[] values) {
@@ -20,7 +20,7 @@ namespace System.Linq.Dynamic {
 
         public static IQueryable SelectMany(this IQueryable source, string selector, Dictionary<string, object> variables, params object[] values) {
             if (source == null) throw new ArgumentNullException(nameof(source));
-            if (selector == null) throw new ArgumentNullException(nameof(selector));
+            if (string.IsNullOrWhiteSpace(selector)) throw new ArgumentNullException(nameof(selector));
 
             var lambda = Evaluator.ToLambda(selector, new[] { source.ElementType }, variables, values);
 

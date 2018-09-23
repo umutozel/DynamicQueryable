@@ -12,9 +12,9 @@ namespace System.Linq.Dynamic {
 
         public static IQueryable GroupBy(this IQueryable source, string keySelector, string elementSelector, string resultSelector, IDictionary<string, object> variables, params object[] values) {
             if (source == null) throw new ArgumentNullException(nameof(source));
-            if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
-            if (elementSelector == null) throw new ArgumentNullException(nameof(elementSelector));
-            if (elementSelector == null) throw new ArgumentNullException(nameof(resultSelector));
+            if (string.IsNullOrWhiteSpace(keySelector)) throw new ArgumentNullException(nameof(keySelector));
+            if (string.IsNullOrWhiteSpace(elementSelector)) throw new ArgumentNullException(nameof(elementSelector));
+            if (string.IsNullOrWhiteSpace(resultSelector)) throw new ArgumentNullException(nameof(resultSelector));
 
             var keyLambda = Evaluator.ToLambda(keySelector, new[] { source.ElementType }, variables, values);
             var elementLambda = Evaluator.ToLambda(elementSelector, new[] { source.ElementType }, variables, values);
@@ -40,8 +40,8 @@ namespace System.Linq.Dynamic {
 
         public static IQueryable GroupBy(this IQueryable source, string keySelector, string resultSelector, IDictionary<string, object> variables, params object[] values) {
             if (source == null) throw new ArgumentNullException(nameof(source));
-            if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
-            if (resultSelector == null) throw new ArgumentNullException(nameof(resultSelector));
+            if (string.IsNullOrWhiteSpace(keySelector)) throw new ArgumentNullException(nameof(keySelector));
+            if (string.IsNullOrWhiteSpace(resultSelector)) throw new ArgumentNullException(nameof(resultSelector));
 
             var keyLambda = Evaluator.ToLambda(keySelector, new[] { source.ElementType }, variables, values);
             var enumSourceType = typeof(IEnumerable<>).MakeGenericType(source.ElementType);
@@ -65,7 +65,7 @@ namespace System.Linq.Dynamic {
 
         public static IQueryable GroupBy(this IQueryable source, string keySelector, IDictionary<string, object> variables, params object[] values) {
             if (source == null) throw new ArgumentNullException(nameof(source));
-            if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
+            if (string.IsNullOrWhiteSpace(keySelector)) throw new ArgumentNullException(nameof(keySelector));
 
             var keyLambda = Evaluator.ToLambda(keySelector, new[] { source.ElementType }, variables, values);
 

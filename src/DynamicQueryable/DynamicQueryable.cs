@@ -12,7 +12,7 @@ namespace System.Linq.Dynamic {
 
         private static Expression CreateLambda(IQueryable source, string method, string expression, bool generic, IDictionary<string, object> variables, params object[] values) {
             if (source == null) throw new ArgumentNullException(nameof(source));
-            if (expression == null) throw new ArgumentNullException(nameof(expression));
+            if (string.IsNullOrWhiteSpace(expression)) throw new ArgumentNullException(nameof(expression));
 
             var types = new[] { source.ElementType };
             var lambda = Evaluator.ToLambda(expression, types, variables, values);
@@ -38,22 +38,26 @@ namespace System.Linq.Dynamic {
         }
 
         private static IQueryable HandleConstant(IQueryable source, string method, object value) {
-            return source.Provider.CreateQuery(CreateExpression(source, method, true, Expression.Constant(value)));
+            var expression = CreateExpression(source, method, true, Expression.Constant(value));
+            return source.Provider.CreateQuery(expression);
         }
 
         private static IQueryable HandleLambda(IQueryable source, string method, string expression, bool generic, IDictionary<string, object> variables, object[] values) {
-            return source.Provider.CreateQuery(CreateLambda(source, method, expression, generic, variables, values));
+            var lambda = CreateLambda(source, method, expression, generic, variables, values);
+            return source.Provider.CreateQuery(lambda);
         }
 
         private static object Execute(IQueryable source, string method, bool generic) {
-            return source.Provider.Execute(CreateExpression(source, method, generic));
+            var expression = CreateExpression(source, method, generic);
+            return source.Provider.Execute(expression);
         }
 
         private static object ExecuteLambda(IQueryable source, string method, string expression, bool generic, IDictionary<string, object> variables, params object[] values) {
             if (string.IsNullOrEmpty(expression))
                 return Execute(source, method, generic);
 
-            return source.Provider.Execute(CreateLambda(source, method, expression, generic, variables, values));
+            var lambda = CreateLambda(source, method, expression, generic, variables, values);
+            return source.Provider.Execute(lambda);
         }
     }
 }
