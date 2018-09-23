@@ -228,5 +228,34 @@ namespace System.Linq.Dynamic {
                 )
             );
         }
+
+        public static IQueryable<T> SkipWhile<T>(this IQueryable<T> source, string predicate, params object[] values) {
+            return SkipWhile(source, predicate, null, values);
+        }
+
+        public static IQueryable<T> SkipWhile<T>(this IQueryable<T> source, string predicate, IDictionary<string, object> variables, params object[] values) {
+            return (IQueryable<T>)SkipWhile((IQueryable)source, predicate, variables, values);
+        }
+
+        public static IQueryable SkipWhile(this IQueryable source, string predicate, params object[] values) {
+            return SkipWhile(source, predicate, null, values);
+        }
+
+        public static IQueryable SkipWhile(this IQueryable source, string predicate, IDictionary<string, object> variables, params object[] values) {
+            if (source == null) throw new ArgumentNullException("source");
+            if (predicate == null) throw new ArgumentNullException("predicate");
+
+            var types = new[] { source.ElementType };
+            var lambda = Evaluator.ToLambda(predicate, types, variables, values);
+
+            return source.Provider.CreateQuery(
+                Expression.Call(
+                    typeof(Queryable), "SkipWhile",
+                    new Type[] { source.ElementType },
+                    source.Expression, 
+                    Expression.Quote(lambda)
+                )
+            );
+        }
     }
 }

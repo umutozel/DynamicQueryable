@@ -26,7 +26,7 @@ namespace DynamicQueryable.Tests {
         [Fact]
         public void ShouldHandleWhere() {
             var orders = _query.Where(o => o.Id >= 0 || o.Price % 2 == 0).ToList();
-            var dynOrders1 = _query.Where("Id >= 0 || Price%2 == 0").ToList();
+            var dynOrders1 = _query.Where("o => o.Id >= 0 || o.Price%2 == 0").ToList();
             var dynOrders2 = ((IQueryable)_query).Where("Id >= 0 || Price%2 == 0").As<Order>().ToList();
 
             Assert.Equal(orders, dynOrders1);
@@ -93,6 +93,16 @@ namespace DynamicQueryable.Tests {
             Assert.Equal(group1, dynGroup1);
             Assert.Equal(group2, dynGroup2);
             Assert.Equal(group3, dynGroup3);
+        }
+
+        [Fact]
+        public void ShouldHandleSkipWhile() {
+            var orders = _query.SkipWhile(o => o.Id >= 0 || o.Price % 2 == 0).ToList();
+            var dynOrders1 = _query.SkipWhile("o => o.Id >= 0 || o.Price%2 == 0").ToList();
+            var dynOrders2 = ((IQueryable)_query).SkipWhile("Id >= 0 || Price%2 == 0").As<Order>().ToList();
+
+            Assert.Equal(orders, dynOrders1);
+            Assert.Equal(orders, dynOrders2);
         }
     }
 }
