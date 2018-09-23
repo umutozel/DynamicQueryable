@@ -203,5 +203,25 @@ namespace DynamicQueryable.Tests {
             Assert.Equal(avg, dynAvg3);
             Assert.Equal(avg, dynAvg4);
         }
+
+        [Fact]
+        public void ShouldExecuteFirst() {
+            var order = _query.First(o => o.Id > AvgId);
+            var dynOrder1 = _query.First("o => o.Id > AvgId", new Dictionary<string, object> { { "AvgId", AvgId } });
+            var dynOrder2 = ((IQueryable)_query).First("Id > @0", AvgId);
+
+            Assert.Equal(order, dynOrder1);
+            Assert.Equal(order, dynOrder2);
+        }
+
+        [Fact]
+        public void ShouldExecuteFirstOrDefault() {
+            var order = _query.FirstOrDefault(o => o.Id == 42);
+            var dynOrder1 = _query.FirstOrDefault("o => o.Id == 42");
+            var dynOrder2 = ((IQueryable)_query).FirstOrDefault("Id == 42");
+
+            Assert.Equal(order, dynOrder1);
+            Assert.Equal(order, dynOrder2);
+        }
     }
 }

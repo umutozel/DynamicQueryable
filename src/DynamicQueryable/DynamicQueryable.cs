@@ -40,8 +40,8 @@ namespace System.Linq.Dynamic {
             );
         }
 
-        private static IQueryable HandleLambda(IQueryable source, string method, string expression, bool customReturn, IDictionary<string, object> variables, object[] values) {
-            return source.Provider.CreateQuery(CreateLambda(source, method, expression, customReturn, variables, values));
+        private static IQueryable HandleLambda(IQueryable source, string method, string expression, bool generic, IDictionary<string, object> variables, object[] values) {
+            return source.Provider.CreateQuery(CreateLambda(source, method, expression, generic, variables, values));
         }
 
         private static object Execute(this IQueryable source, string method, bool generic) {
