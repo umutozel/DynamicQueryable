@@ -223,5 +223,46 @@ namespace DynamicQueryable.Tests {
             Assert.Equal(order, dynOrder1);
             Assert.Equal(order, dynOrder2);
         }
+
+        [Fact]
+        public void ShouldExecuteSingle() {
+            var orders = new List<Order> {
+                new Order { Id = 1 },
+                new Order { Id = 2 },
+                new Order { Id = 3 }
+            };
+            var query = orders.AsQueryable();
+
+            var dynOrder1 = query.Single("o => o.Id > 2");
+            var dynOrder2 = ((IQueryable)query).Single("Id > 2");
+
+            Assert.Equal(orders[2], dynOrder1);
+            Assert.Equal(dynOrder1, dynOrder2);
+
+            Assert.Throws<InvalidOperationException>(() => query.Single("o => o.Id > 3"));
+            Assert.Throws<InvalidOperationException>(() => ((IQueryable)query).Single("o => o.Id > 3"));
+        }
+
+        [Fact]
+        public void ShouldExecuteSingleOrDefault() {
+            var orders = new List<Order> {
+                new Order { Id = 1 },
+                new Order { Id = 2 },
+                new Order { Id = 3 }
+            };
+            var query = orders.AsQueryable();
+
+            var dynOrder1 = query.SingleOrDefault("o => o.Id > 2");
+            var dynOrder2 = ((IQueryable)query).SingleOrDefault("Id > 2");
+
+            Assert.Equal(orders[2], dynOrder1);
+            Assert.Equal(dynOrder1, dynOrder2);
+
+            var dynOrder3 = query.SingleOrDefault("o => o.Id > 3");
+            var dynOrder4 = ((IQueryable)query).SingleOrDefault("Id > 3");
+
+            Assert.Null(dynOrder3);
+            Assert.Null(dynOrder4);
+        }
     }
 }
