@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic;
 using Giver;
@@ -14,12 +13,13 @@ namespace DynamicQueryable.Tests {
         public ExpressionTests() {
             var orders = Give<Order>
                 .ToMe(o => o.Lines = Give<OrderLine>
-                    .ToMe(od => od.Product = Give<Product>
-                        .ToMe(p => p.Supplier = Give<Company>.Single())
-                    ).Now(5)
+                    .ToMe(od => {
+                        od.OrderId = o.Id;
+                        od.Order = o;
+                        od.Product = Give<Product>.ToMe(p => p.Supplier = Give<Company>.Single());
+                    }).Now(new Random().Next(3, 15))
                 ).Now(20);
 
-            orders[3].Id = 5;
             _query = orders.AsQueryable();
         }
 
@@ -27,7 +27,7 @@ namespace DynamicQueryable.Tests {
         public void ShouldHandleWhere() {
             var orders = _query.Where(o => o.Id >= 0 || o.Price % 2 == 0).ToList();
             var dynOrders1 = _query.Where("Id >= 0 || Price%2 == 0").ToList();
-            var dynOrders2 = ((IQueryable)_query).Where("Id >= 0 || Price%2 == 0").ToList();
+            var dynOrders2 = ((IQueryable)_query).Where("Id >= 0 || Price%2 == 0").As<Order>().ToList();
 
             Assert.Equal(orders, dynOrders1);
             Assert.Equal(orders, dynOrders2);
@@ -36,7 +36,7 @@ namespace DynamicQueryable.Tests {
         [Fact]
         public void ShouldHandleSelect() {
             var order = _query.Select(o => new { Id = o.Id, OrderDate = o.OrderDate }).First();
-            var dynOrder = (dynamic)_query.Select("o => new { Id = o.Id, OrderDate = o.OrderDate }").First();
+            var dynOrder = _query.Select("o => new { Id = o.Id, OrderDate = o.OrderDate }").As<dynamic>().First();
 
             Assert.Equal(order.OrderDate, dynOrder.OrderDate);
         }
@@ -44,8 +44,8 @@ namespace DynamicQueryable.Tests {
         [Fact]
         public void ShouldHandleSelectMany() {
             var lines = _query.SelectMany(o => o.Lines).ToList();
-            var dynLines1 = _query.SelectMany("o => o.Lines").ToList();
-            var dynLines2 = ((IQueryable)_query).SelectMany("o => o.Lines").ToList();
+            var dynLines1 = _query.SelectMany("o => o.Lines").As<OrderLine>().ToList();
+            var dynLines2 = ((IQueryable)_query).SelectMany("o => o.Lines").As<OrderLine>().ToList();
 
             Assert.Equal(lines, dynLines1);
             Assert.Equal(lines, dynLines2);
@@ -55,7 +55,7 @@ namespace DynamicQueryable.Tests {
         public void ShouldHandleOrderBy() {
             var order = _query.OrderBy(o => o.Id).First();
             var dynOrder1 = _query.OrderBy("o => o.Id").First();
-            var dynOrder2 = ((IQueryable)_query).OrderBy("o => o.Id").First();
+            var dynOrder2 = ((IQueryable)_query).OrderBy("o => o.Id").As<object>().First();
 
             Assert.Equal(order, dynOrder1);
             Assert.Equal(order, dynOrder2);
@@ -75,6 +75,24 @@ namespace DynamicQueryable.Tests {
             var dynOrders = ((IQueryable)_query).Skip(3);
 
             Assert.Equal(orders, dynOrders);
+        }
+
+        [Fact]
+        public void ShouldHandleGroupBy() {
+            var lines = _query.SelectMany(o => o.Lines).ToList().AsQueryable();
+
+            var group1 = lines.GroupBy(l => l.OrderId, l => l.Id, (k, lid) => lid.Count()).ToList();
+            var dynGroup1 = lines.GroupBy("l => l.OrderId", "l => l.Id", "(k, lid) => lid.Count()").Cast<int>().ToList();
+
+            var group2 = lines.GroupBy(l => l.OrderId, (k, l) => l.Count()).ToList();
+            var dynGroup2 = lines.GroupBy("l => l.OrderId", "(k, l) => l.Count()").Cast<int>().ToList();
+
+            var group3 = lines.GroupBy(l => l.OrderId).ToList();
+            var dynGroup3 = lines.GroupBy("l => l.OrderId").Cast<IGrouping<int, OrderLine>>().ToList();
+
+            Assert.Equal(group1, dynGroup1);
+            Assert.Equal(group2, dynGroup2);
+            Assert.Equal(group3, dynGroup3);
         }
     }
 }
