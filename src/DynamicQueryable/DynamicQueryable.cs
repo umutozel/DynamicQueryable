@@ -250,7 +250,38 @@ namespace System.Linq.Dynamic {
 
             return source.Provider.CreateQuery(
                 Expression.Call(
-                    typeof(Queryable), "SkipWhile",
+                    typeof(Queryable), 
+                    "SkipWhile",
+                    new Type[] { source.ElementType },
+                    source.Expression, 
+                    Expression.Quote(lambda)
+                )
+            );
+        }
+
+        public static IQueryable<T> TakeWhile<T>(this IQueryable<T> source, string predicate, params object[] values) {
+            return TakeWhile(source, predicate, null, values);
+        }
+
+        public static IQueryable<T> TakeWhile<T>(this IQueryable<T> source, string predicate, IDictionary<string, object> variables, params object[] values) {
+            return (IQueryable<T>)TakeWhile((IQueryable)source, predicate, variables, values);
+        }
+
+        public static IQueryable TakeWhile(this IQueryable source, string predicate, params object[] values) {
+            return TakeWhile(source, predicate, null, values);
+        }
+
+        public static IQueryable TakeWhile(this IQueryable source, string predicate, IDictionary<string, object> variables, params object[] values) {
+            if (source == null) throw new ArgumentNullException("source");
+            if (predicate == null) throw new ArgumentNullException("predicate");
+
+            var types = new[] { source.ElementType };
+            var lambda = Evaluator.ToLambda(predicate, types, variables, values);
+
+            return source.Provider.CreateQuery(
+                Expression.Call(
+                    typeof(Queryable), 
+                    "TakeWhile",
                     new Type[] { source.ElementType },
                     source.Expression, 
                     Expression.Quote(lambda)
