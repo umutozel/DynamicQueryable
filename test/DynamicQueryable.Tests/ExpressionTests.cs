@@ -147,5 +147,19 @@ namespace DynamicQueryable.Tests {
             Assert.Equal(orders, dynOrders1);
             Assert.Equal(orders, dynOrders2);
         }
+
+        [Fact]
+        public void ShouldExecuteAverage() {
+            var avg = _query.Average(o => o.Price);
+            var dynAvg1 = _query.Average("o => o.Price");
+            var dynAvg2 = ((IQueryable)_query).Select("o => o.Price").Average();
+            var dynAvg3 = _query.Average("o => o.Price");
+            var dynAvg4 = ((IQueryable)_query).Average("o => o.Price");
+
+            Assert.Equal(avg, dynAvg1);
+            Assert.Equal(avg, dynAvg2);
+            Assert.Equal(avg, dynAvg3);
+            Assert.Equal(avg, dynAvg4);
+        }
     }
 }

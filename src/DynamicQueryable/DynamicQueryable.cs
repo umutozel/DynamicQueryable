@@ -31,5 +31,18 @@ namespace System.Linq.Dynamic {
                 )
             );
         }
+
+        private static object Execute(this IQueryable source, string method) {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+
+            return source.Provider.Execute(
+                Expression.Call(
+                    typeof(Queryable),
+                    method,
+                    new Type[] { },
+                    source.Expression
+                )
+            );
+        }
     }
 }
