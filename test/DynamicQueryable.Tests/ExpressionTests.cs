@@ -65,6 +65,36 @@ namespace DynamicQueryable.Tests {
         }
 
         [Fact]
+        public void ShouldHandleOrderByDescending() {
+            var order = _query.OrderByDescending(o => o.Id).First();
+            var dynOrder1 = _query.OrderByDescending("o => o.Id").First();
+            var dynOrder2 = ((IQueryable)_query).OrderByDescending("o => o.Id").As<object>().First();
+
+            Assert.Equal(order, dynOrder1);
+            Assert.Equal(order, dynOrder2);
+        }
+
+        [Fact]
+        public void ShouldHandleThenBy() {
+            var order = _query.OrderBy(o => o.Id).ThenBy(o => o.Price).First();
+            var dynOrder1 = _query.OrderBy("o => o.Id").ThenBy("o => o.Price").First();
+            var dynOrder2 = ((IQueryable)_query).OrderBy("o => o.Id").ThenBy("o => o.Price").As<object>().First();
+
+            Assert.Equal(order, dynOrder1);
+            Assert.Equal(order, dynOrder2);
+        }
+
+        [Fact]
+        public void ShouldHandleThenByDescending() {
+            var order = _query.OrderBy(o => o.Id).ThenByDescending(o => o.Price).First();
+            var dynOrder1 = _query.OrderBy("o => o.Id").ThenByDescending("o => o.Price").First();
+            var dynOrder2 = ((IQueryable)_query).OrderBy("o => o.Id").ThenByDescending("o => o.Price").As<object>().First();
+
+            Assert.Equal(order, dynOrder1);
+            Assert.Equal(order, dynOrder2);
+        }
+
+        [Fact]
         public void ShouldHandleTake() {
             var orders = _query.Take(3);
             var dynOrders = ((IQueryable)_query).Take(3);
