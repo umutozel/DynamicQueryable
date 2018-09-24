@@ -152,8 +152,9 @@ namespace DynamicQueryable.Tests {
         [Fact]
         public void ShouldHandleSkipWhile() {
             var orders = _query.SkipWhile(o => o.Id > AvgId).ToList();
-            var dynOrders1 = _query.SkipWhile("o => o.Id > AvgId", new Dictionary<string, object> { { "AvgId", AvgId } }).ToList();
-            var dynOrders2 = ((IQueryable)_query).SkipWhile("Id > @0", AvgId).As<Order>().ToList();
+            var dynOrders1 = _query.SkipWhile("o => o.Id > @0", AvgId).ToList();
+            var dynOrders2 = _query.SkipWhile("o => o.Id > AvgId", new Dictionary<string, object> { { "AvgId", AvgId } }).ToList();
+            var dynOrders3 = ((IQueryable)_query).SkipWhile("Id > @0", AvgId).As<Order>().ToList();
 
             Assert.Equal(orders, dynOrders1);
             Assert.Equal(orders, dynOrders2);
@@ -162,11 +163,13 @@ namespace DynamicQueryable.Tests {
         [Fact]
         public void ShouldHandleTakeWhile() {
             var orders = _query.TakeWhile(o => o.Id < AvgId).ToList();
-            var dynOrders1 = _query.TakeWhile("o => o.Id < AvgId", new Dictionary<string, object> { { "AvgId", AvgId } }).ToList();
-            var dynOrders2 = ((IQueryable)_query).TakeWhile("Id < @0", AvgId).As<Order>().ToList();
+            var dynOrders1 = _query.TakeWhile("o => o.Id < @0", AvgId).ToList();
+            var dynOrders2 = _query.TakeWhile("o => o.Id < AvgId", new Dictionary<string, object> { { "AvgId", AvgId } }).ToList();
+            var dynOrders3 = ((IQueryable)_query).TakeWhile("Id < @0", AvgId).As<Order>().ToList();
 
             Assert.Equal(orders, dynOrders1);
-            Assert.Equal(orders, dynOrders2);
+            Assert.Equal(orders, dynOrders1);
+            Assert.Equal(orders, dynOrders3);
         }
 
         [Fact]
