@@ -455,5 +455,45 @@ namespace DynamicQueryable.Tests {
             var order = new Order();
             Assert.Equal(query.DefaultIfEmpty(order), ((IQueryable)query).DefaultIfEmpty(order));
         }
+
+        [Fact]
+        public void ShouldExecuteExcept() {
+            var orders1 = _query.Take(4).AsQueryable();
+            var orders2 = _query.Take(2).ToList();
+            var except = orders1.Except(orders2).ToList();
+            var dynExcept = ((IQueryable)orders1).Except(orders2).Cast<Order>().ToList();
+
+            Assert.Equal(except, dynExcept);
+        }
+
+        [Fact]
+        public void ShouldExecuteIntersect() {
+            var orders1 = _query.Take(4).AsQueryable();
+            var orders2 = _query.Take(2).ToList();
+            var intersect = orders1.Intersect(orders2).ToList();
+            var dynIntersect = ((IQueryable)orders1).Intersect(orders2).Cast<Order>().ToList();
+
+            Assert.Equal(intersect, dynIntersect);
+        }
+
+        [Fact]
+        public void ShouldExecuteUnion() {
+            var orders1 = _query.Skip(1).Take(4).AsQueryable();
+            var orders2 = _query.Take(2).ToList();
+            var union = orders1.Union(orders2).ToList();
+            var dynUnion = ((IQueryable)orders1).Union(orders2).Cast<Order>().ToList();
+
+            Assert.Equal(union, dynUnion);
+        }
+
+        [Fact]
+        public void ShouldExecuteConcat() {
+            var orders1 = _query.Skip(1).Take(4).AsQueryable();
+            var orders2 = _query.Take(2).ToList();
+            var concat = orders1.Concat(orders2).ToList();
+            var dynConcat = ((IQueryable)orders1).Concat(orders2).Cast<Order>().ToList();
+
+            Assert.Equal(concat, dynConcat);
+        }
     }
 }
