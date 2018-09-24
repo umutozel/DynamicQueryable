@@ -14,14 +14,6 @@ namespace System.Linq.Dynamic {
             return HandleLambda(source, "Select", selector, true, variables, values);
         }
 
-        public static IQueryable SelectMany<T>(this IQueryable<T> source, string selector, params object[] values) {
-            return SelectMany(source, selector, null, values);
-        }
-
-        public static IQueryable SelectMany<T>(this IQueryable<T> source, string selector, Dictionary<string, object> variables, params object[] values) {
-            return SelectMany((IQueryable)source, selector, null, values);
-        }
-
         public static IQueryable SelectMany(this IQueryable source, string selector, params object[] values) {
             return SelectMany(source, selector, null, values);
         }

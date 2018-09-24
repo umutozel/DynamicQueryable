@@ -28,15 +28,6 @@ namespace DynamicQueryable.Tests {
         }
 
         [Fact]
-        public void ShouldThrowForNullArgs() {
-
-
-
-            Assert.Throws<ArgumentNullException>(() => Dyn.SelectMany(null, ""));
-            Assert.Throws<ArgumentNullException>(() => Dyn.SelectMany(_query, ""));
-        }
-
-        [Fact]
         public void ShouldHandleWhere() {
             var orders = _query.Where(o => o.Id > AvgId).ToList();
             var dynOrders1 = _query.Where("o => o.Id > @0", AvgId).ToList();
@@ -60,11 +51,11 @@ namespace DynamicQueryable.Tests {
         [Fact]
         public void ShouldHandleSelectMany() {
             var lines = _query.SelectMany(o => o.Lines).ToList();
-            var dynLines1 = _query.SelectMany("o => o.Lines").Cast<OrderLine>().ToList();
-            var dynLines2 = ((IQueryable)_query).SelectMany("o => o.Lines").Cast<OrderLine>().ToList();
+            var dynLines = _query.SelectMany("o => o.Lines").Cast<OrderLine>().ToList();
 
-            Assert.Equal(lines, dynLines1);
-            Assert.Equal(lines, dynLines2);
+            Assert.Equal(lines, dynLines);
+            Assert.Throws<ArgumentNullException>(() => Dyn.SelectMany(null, ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.SelectMany(_query, ""));
         }
 
         [Fact]
@@ -90,8 +81,8 @@ namespace DynamicQueryable.Tests {
         [Fact]
         public void ShouldHandleThenBy() {
             var order = _query.OrderBy(o => o.Id).ThenBy(o => o.Price).First();
-            var dynOrder1 = _query.OrderBy("o => o.Id").ThenBy("o => o.Price").First();
-            var dynOrder2 = ((IQueryable)_query).OrderBy("o => o.Id").ThenBy("o => o.Price").Cast<object>().First();
+            var dynOrder1 = _query.OrderBy(o => o.Id).ThenBy("o => o.Price").First();
+            var dynOrder2 = ((IQueryable)_query.OrderBy(o => o.Id)).ThenBy("o => o.Price").Cast<object>().First();
 
             Assert.Equal(order, dynOrder1);
             Assert.Equal(order, dynOrder2);
@@ -100,8 +91,8 @@ namespace DynamicQueryable.Tests {
         [Fact]
         public void ShouldHandleThenByDescending() {
             var order = _query.OrderBy(o => o.Id).ThenByDescending(o => o.Price).First();
-            var dynOrder1 = _query.OrderBy("o => o.Id").ThenByDescending("o => o.Price").First();
-            var dynOrder2 = ((IQueryable)_query).OrderBy("o => o.Id").ThenByDescending("o => o.Price").Cast<object>().First();
+            var dynOrder1 = _query.OrderBy(o => o.Id).ThenByDescending("o => o.Price").First();
+            var dynOrder2 = ((IQueryable)_query.OrderBy(o => o.Id)).ThenByDescending("o => o.Price").Cast<object>().First();
 
             Assert.Equal(order, dynOrder1);
             Assert.Equal(order, dynOrder2);
@@ -177,57 +168,33 @@ namespace DynamicQueryable.Tests {
         [Fact]
         public void ShouldExecuteAverage() {
             var avg = _query.Average(o => o.Price);
-            var dynAvg1 = _query.Average("o => o.Price");
-            var dynAvg2 = ((IQueryable)_query).Select("o => o.Price").Average();
-            var dynAvg3 = _query.Average("o => o.Price");
-            var dynAvg4 = ((IQueryable)_query).Average("o => o.Price");
+            var dynAvg = _query.Average("o => o.Price");
 
-            Assert.Equal(avg, dynAvg1);
-            Assert.Equal(avg, dynAvg2);
-            Assert.Equal(avg, dynAvg3);
-            Assert.Equal(avg, dynAvg4);
+            Assert.Equal(avg, dynAvg);
         }
 
         [Fact]
         public void ShouldExecuteSum() {
             var avg = _query.Sum(o => o.Price);
-            var dynAvg1 = _query.Sum("o => o.Price");
-            var dynAvg2 = ((IQueryable)_query).Select("o => o.Price").Sum();
-            var dynAvg3 = _query.Sum("o => o.Price");
-            var dynAvg4 = ((IQueryable)_query).Sum("o => o.Price");
+            var dynAvg = _query.Sum("o => o.Price");
 
-            Assert.Equal(avg, dynAvg1);
-            Assert.Equal(avg, dynAvg2);
-            Assert.Equal(avg, dynAvg3);
-            Assert.Equal(avg, dynAvg4);
+            Assert.Equal(avg, dynAvg);
         }
 
         [Fact]
         public void ShouldExecuteMax() {
             var avg = _query.Max(o => o.Price);
-            var dynAvg1 = _query.Max("o => o.Price");
-            var dynAvg2 = ((IQueryable)_query).Select("o => o.Price").Max();
-            var dynAvg3 = _query.Max("o => o.Price");
-            var dynAvg4 = ((IQueryable)_query).Max("o => o.Price");
+            var dynAvg = _query.Max("o => o.Price");
 
-            Assert.Equal(avg, dynAvg1);
-            Assert.Equal(avg, dynAvg2);
-            Assert.Equal(avg, dynAvg3);
-            Assert.Equal(avg, dynAvg4);
+            Assert.Equal(avg, dynAvg);
         }
 
         [Fact]
         public void ShouldExecuteMin() {
             var avg = _query.Min(o => o.Price);
-            var dynAvg1 = _query.Min("o => o.Price");
-            var dynAvg2 = ((IQueryable)_query).Select("o => o.Price").Min();
-            var dynAvg3 = _query.Min("o => o.Price");
-            var dynAvg4 = ((IQueryable)_query).Min("o => o.Price");
+            var dynAvg = _query.Min("o => o.Price");
 
-            Assert.Equal(avg, dynAvg1);
-            Assert.Equal(avg, dynAvg2);
-            Assert.Equal(avg, dynAvg3);
-            Assert.Equal(avg, dynAvg4);
+            Assert.Equal(avg, dynAvg);
         }
 
         [Fact]
@@ -372,13 +339,11 @@ namespace DynamicQueryable.Tests {
             var order = _query.Count(o => o.Id < AvgId);
             var dynOrder1 = _query.Count("o => o.Id < @0", AvgId);
             var dynOrder2 = _query.Count("o => o.Id < AvgId", new Dictionary<string, object> { { "AvgId", AvgId } });
-            var dynOrder3 = ((IQueryable)_query).Count("Id < @0", AvgId);
-            var dynOrder4 = ((IQueryable)_query).Count();
+            var dynOrder3 = ((IQueryable)_query).Count();
 
             Assert.Equal(order, dynOrder1);
             Assert.Equal(order, dynOrder2);
-            Assert.Equal(order, dynOrder3);
-            Assert.Equal(_query.Count(), dynOrder4);
+            Assert.Equal(_query.Count(), dynOrder3);
         }
 
         [Fact]
@@ -386,13 +351,11 @@ namespace DynamicQueryable.Tests {
             var order = _query.LongCount(o => o.Id < AvgId);
             var dynOrder1 = _query.LongCount("o => o.Id < @0", AvgId);
             var dynOrder2 = _query.LongCount("o => o.Id < AvgId", new Dictionary<string, object> { { "AvgId", AvgId } });
-            var dynOrder3 = ((IQueryable)_query).LongCount("Id < @0", AvgId);
-            var dynOrder4 = ((IQueryable)_query).LongCount();
+            var dynOrder3 = ((IQueryable)_query).LongCount();
 
             Assert.Equal(order, dynOrder1);
             Assert.Equal(order, dynOrder2);
-            Assert.Equal(order, dynOrder3);
-            Assert.Equal(_query.LongCount(), dynOrder4);
+            Assert.Equal(_query.LongCount(), dynOrder3);
         }
 
         [Fact]
@@ -538,6 +501,37 @@ namespace DynamicQueryable.Tests {
             Assert.Throws<ArgumentNullException>(() => Dyn.Join(_query, _query, "", "", ""));
             Assert.Throws<ArgumentNullException>(() => Dyn.Join(_query, _query, "Id", "", ""));
             Assert.Throws<ArgumentNullException>(() => Dyn.Join(_query, _query, "Id", "Id", ""));
+        }
+
+        [Fact]
+        public void ShouldHandleGroupJoin() {
+            var orders = _query.ToList().AsQueryable();
+            var lines = _query.SelectMany(o => o.Lines).ToList().AsQueryable();
+
+            var groupJoin = orders.GroupJoin(lines, o => o.Id, l => l.OrderId, (o, l) => o.Id + l.Max(x => x.Id)).ToList();
+            var dynGroupJoin = orders.GroupJoin(lines, "o => o.Id", "l => l.OrderId", "(o, l) => o.Id + l.Max(x => x.Id)").Cast<int>().ToList();
+
+            Assert.Equal(groupJoin, dynGroupJoin);
+
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupJoin(null, null, "", "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupJoin(_query, null, "", "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupJoin(_query, _query, "", "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupJoin(_query, _query, "Id", "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupJoin(_query, _query, "Id", "Id", ""));
+        }
+
+        [Fact]
+        public void ShouldHandleZip() {
+            var lineCounts = _query.Select(o => o.Lines.Count).ToList();
+
+            var zip = _query.Zip(lineCounts, (o, l) => o.Id + l).ToList();
+            var dynZip = _query.Zip(lineCounts, "(o, l) => o.Id + l").Cast<int>().ToList();
+
+            Assert.Equal(zip, dynZip);
+
+            Assert.Throws<ArgumentNullException>(() => Dyn.Zip<int>(null, (IEnumerable<int>)null, ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.Zip<int>(_query, (IEnumerable<int>)null, ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.Zip<int>(_query, Enumerable.Empty<int>(), ""));
         }
     }
 }

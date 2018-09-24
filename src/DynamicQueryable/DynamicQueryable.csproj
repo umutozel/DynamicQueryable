@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Jokenizer.Net" Version="1.0.1" />
+    <PackageReference Include="Jokenizer.Net" Version="1.0.3" />
   </ItemGroup>
 
   <PropertyGroup>
