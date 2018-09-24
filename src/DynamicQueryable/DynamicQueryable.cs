@@ -6,10 +6,6 @@ namespace System.Linq.Dynamic {
 
     public static partial class DynamicQueryable {
 
-        public static IQueryable<T> As<T>(this IQueryable source) {
-            return (IQueryable<T>)source;
-        }
-
         private static Expression CreateLambda(IQueryable source, string method, string expression, bool generic, IDictionary<string, object> variables, params object[] values) {
             if (source == null) throw new ArgumentNullException(nameof(source));
             if (string.IsNullOrWhiteSpace(expression)) throw new ArgumentNullException(nameof(expression));

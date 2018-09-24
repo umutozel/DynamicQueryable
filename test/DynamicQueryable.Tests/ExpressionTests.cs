@@ -51,7 +51,7 @@ namespace DynamicQueryable.Tests {
         public void ShouldHandleWhere() {
             var orders = _query.Where(o => o.Id > AvgId).ToList();
             var dynOrders1 = _query.Where("o => o.Id > AvgId", new Dictionary<string, object> { { "AvgId", AvgId } }).ToList();
-            var dynOrders2 = ((IQueryable)_query).Where("Id > @0", AvgId).As<Order>().ToList();
+            var dynOrders2 = ((IQueryable)_query).Where("Id > @0", AvgId).Cast<Order>().ToList();
 
             Assert.Equal(orders, dynOrders1);
             Assert.Equal(orders, dynOrders2);
@@ -60,7 +60,7 @@ namespace DynamicQueryable.Tests {
         [Fact]
         public void ShouldHandleSelect() {
             var order = _query.Select(o => new { Id = o.Id, OrderDate = o.OrderDate }).First();
-            var dynOrder = _query.Select("o => new { Id = o.Id, OrderDate = o.OrderDate }").As<dynamic>().First();
+            var dynOrder = _query.Select("o => new { Id = o.Id, OrderDate = o.OrderDate }").Cast<dynamic>().First();
 
             Assert.Equal(order.OrderDate, dynOrder.OrderDate);
         }
@@ -68,8 +68,8 @@ namespace DynamicQueryable.Tests {
         [Fact]
         public void ShouldHandleSelectMany() {
             var lines = _query.SelectMany(o => o.Lines).ToList();
-            var dynLines1 = _query.SelectMany("o => o.Lines").As<OrderLine>().ToList();
-            var dynLines2 = ((IQueryable)_query).SelectMany("o => o.Lines").As<OrderLine>().ToList();
+            var dynLines1 = _query.SelectMany("o => o.Lines").Cast<OrderLine>().ToList();
+            var dynLines2 = ((IQueryable)_query).SelectMany("o => o.Lines").Cast<OrderLine>().ToList();
 
             Assert.Equal(lines, dynLines1);
             Assert.Equal(lines, dynLines2);
@@ -79,7 +79,7 @@ namespace DynamicQueryable.Tests {
         public void ShouldHandleOrderBy() {
             var order = _query.OrderBy(o => o.Id).First();
             var dynOrder1 = _query.OrderBy("o => o.Id").First();
-            var dynOrder2 = ((IQueryable)_query).OrderBy("o => o.Id").As<object>().First();
+            var dynOrder2 = ((IQueryable)_query).OrderBy("o => o.Id").Cast<object>().First();
 
             Assert.Equal(order, dynOrder1);
             Assert.Equal(order, dynOrder2);
@@ -89,7 +89,7 @@ namespace DynamicQueryable.Tests {
         public void ShouldHandleOrderByDescending() {
             var order = _query.OrderByDescending(o => o.Id).First();
             var dynOrder1 = _query.OrderByDescending("o => o.Id").First();
-            var dynOrder2 = ((IQueryable)_query).OrderByDescending("o => o.Id").As<object>().First();
+            var dynOrder2 = ((IQueryable)_query).OrderByDescending("o => o.Id").Cast<object>().First();
 
             Assert.Equal(order, dynOrder1);
             Assert.Equal(order, dynOrder2);
@@ -99,7 +99,7 @@ namespace DynamicQueryable.Tests {
         public void ShouldHandleThenBy() {
             var order = _query.OrderBy(o => o.Id).ThenBy(o => o.Price).First();
             var dynOrder1 = _query.OrderBy("o => o.Id").ThenBy("o => o.Price").First();
-            var dynOrder2 = ((IQueryable)_query).OrderBy("o => o.Id").ThenBy("o => o.Price").As<object>().First();
+            var dynOrder2 = ((IQueryable)_query).OrderBy("o => o.Id").ThenBy("o => o.Price").Cast<object>().First();
 
             Assert.Equal(order, dynOrder1);
             Assert.Equal(order, dynOrder2);
@@ -109,7 +109,7 @@ namespace DynamicQueryable.Tests {
         public void ShouldHandleThenByDescending() {
             var order = _query.OrderBy(o => o.Id).ThenByDescending(o => o.Price).First();
             var dynOrder1 = _query.OrderBy("o => o.Id").ThenByDescending("o => o.Price").First();
-            var dynOrder2 = ((IQueryable)_query).OrderBy("o => o.Id").ThenByDescending("o => o.Price").As<object>().First();
+            var dynOrder2 = ((IQueryable)_query).OrderBy("o => o.Id").ThenByDescending("o => o.Price").Cast<object>().First();
 
             Assert.Equal(order, dynOrder1);
             Assert.Equal(order, dynOrder2);
@@ -154,7 +154,7 @@ namespace DynamicQueryable.Tests {
             var orders = _query.SkipWhile(o => o.Id > AvgId).ToList();
             var dynOrders1 = _query.SkipWhile("o => o.Id > @0", AvgId).ToList();
             var dynOrders2 = _query.SkipWhile("o => o.Id > AvgId", new Dictionary<string, object> { { "AvgId", AvgId } }).ToList();
-            var dynOrders3 = ((IQueryable)_query).SkipWhile("Id > @0", AvgId).As<Order>().ToList();
+            var dynOrders3 = ((IQueryable)_query).SkipWhile("Id > @0", AvgId).Cast<Order>().ToList();
 
             Assert.Equal(orders, dynOrders1);
             Assert.Equal(orders, dynOrders2);
@@ -165,7 +165,7 @@ namespace DynamicQueryable.Tests {
             var orders = _query.TakeWhile(o => o.Id < AvgId).ToList();
             var dynOrders1 = _query.TakeWhile("o => o.Id < @0", AvgId).ToList();
             var dynOrders2 = _query.TakeWhile("o => o.Id < AvgId", new Dictionary<string, object> { { "AvgId", AvgId } }).ToList();
-            var dynOrders3 = ((IQueryable)_query).TakeWhile("Id < @0", AvgId).As<Order>().ToList();
+            var dynOrders3 = ((IQueryable)_query).TakeWhile("Id < @0", AvgId).Cast<Order>().ToList();
 
             Assert.Equal(orders, dynOrders1);
             Assert.Equal(orders, dynOrders1);
