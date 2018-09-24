@@ -50,11 +50,13 @@ namespace DynamicQueryable.Tests {
         [Fact]
         public void ShouldHandleWhere() {
             var orders = _query.Where(o => o.Id > AvgId).ToList();
-            var dynOrders1 = _query.Where("o => o.Id > AvgId", new Dictionary<string, object> { { "AvgId", AvgId } }).ToList();
-            var dynOrders2 = ((IQueryable)_query).Where("Id > @0", AvgId).Cast<Order>().ToList();
+            var dynOrders1 = _query.Where("o => o.Id > @0", AvgId).ToList();
+            var dynOrders2 = _query.Where("o => o.Id > AvgId", new Dictionary<string, object> { { "AvgId", AvgId } }).ToList();
+            var dynOrders3 = ((IQueryable)_query).Where("Id > @0", AvgId).Cast<Order>().ToList();
 
             Assert.Equal(orders, dynOrders1);
             Assert.Equal(orders, dynOrders2);
+            Assert.Equal(orders, dynOrders3);
         }
 
         [Fact]
@@ -231,13 +233,15 @@ namespace DynamicQueryable.Tests {
         [Fact]
         public void ShouldExecuteFirst() {
             var order = _query.First(o => o.Id > AvgId);
-            var dynOrder1 = _query.First("o => o.Id > AvgId", new Dictionary<string, object> { { "AvgId", AvgId } });
-            var dynOrder2 = ((IQueryable)_query).First("Id > @0", AvgId);
-            var dynOrder3 = ((IQueryable)_query).First();
+            var dynOrder1 = _query.First("o => o.Id > @0", AvgId);
+            var dynOrder2 = _query.First("o => o.Id > AvgId", new Dictionary<string, object> { { "AvgId", AvgId } });
+            var dynOrder3 = ((IQueryable)_query).First("Id > @0", AvgId);
+            var dynOrder4 = ((IQueryable)_query).First();
 
             Assert.Equal(order, dynOrder1);
             Assert.Equal(order, dynOrder2);
-            Assert.Equal(_query.First(), dynOrder3);
+            Assert.Equal(order, dynOrder3);
+            Assert.Equal(_query.First(), dynOrder4);
 
             Assert.Throws<InvalidOperationException>(() => _query.Take(0).First());
             Assert.Throws<InvalidOperationException>(() => ((IQueryable)_query.Take(0)).First());
@@ -316,13 +320,15 @@ namespace DynamicQueryable.Tests {
         [Fact]
         public void ShouldExecuteLast() {
             var order = _query.Last(o => o.Id < AvgId);
-            var dynOrder1 = _query.Last("o => o.Id < AvgId", new Dictionary<string, object> { { "AvgId", AvgId } });
-            var dynOrder2 = ((IQueryable)_query).Last("Id < @0", AvgId);
-            var dynOrder3 = ((IQueryable)_query).Last();
+            var dynOrder1 = _query.Last("o => o.Id < @0", AvgId);
+            var dynOrder2 = _query.Last("o => o.Id < AvgId", new Dictionary<string, object> { { "AvgId", AvgId } });
+            var dynOrder3 = ((IQueryable)_query).Last("Id < @0", AvgId);
+            var dynOrder4 = ((IQueryable)_query).Last();
 
             Assert.Equal(order, dynOrder1);
             Assert.Equal(order, dynOrder2);
-            Assert.Equal(_query.Last(), dynOrder3);
+            Assert.Equal(order, dynOrder3);
+            Assert.Equal(_query.Last(), dynOrder4);
 
             Assert.Throws<InvalidOperationException>(() => _query.Take(0).Last());
             Assert.Throws<InvalidOperationException>(() => ((IQueryable)_query.Take(0)).Last());
@@ -345,6 +351,34 @@ namespace DynamicQueryable.Tests {
             Assert.Null(((IQueryable)_query.Take(0)).LastOrDefault());
             Assert.Null(_query.Take(0).LastOrDefault("Id == 1"));
             Assert.Null(((IQueryable)_query.Take(0)).LastOrDefault("Id == 1"));
+        }
+
+        [Fact]
+        public void ShouldExecuteCount() {
+            var order = _query.Count(o => o.Id < AvgId);
+            var dynOrder1 = _query.Count("o => o.Id < @0", AvgId);
+            var dynOrder2 = _query.Count("o => o.Id < AvgId", new Dictionary<string, object> { { "AvgId", AvgId } });
+            var dynOrder3 = ((IQueryable)_query).Count("Id < @0", AvgId);
+            var dynOrder4 = ((IQueryable)_query).Count();
+
+            Assert.Equal(order, dynOrder1);
+            Assert.Equal(order, dynOrder2);
+            Assert.Equal(order, dynOrder3);
+            Assert.Equal(_query.Count(), dynOrder4);
+        }
+
+        [Fact]
+        public void ShouldExecuteLongCount() {
+            var order = _query.LongCount(o => o.Id < AvgId);
+            var dynOrder1 = _query.LongCount("o => o.Id < @0", AvgId);
+            var dynOrder2 = _query.LongCount("o => o.Id < AvgId", new Dictionary<string, object> { { "AvgId", AvgId } });
+            var dynOrder3 = ((IQueryable)_query).LongCount("Id < @0", AvgId);
+            var dynOrder4 = ((IQueryable)_query).LongCount();
+
+            Assert.Equal(order, dynOrder1);
+            Assert.Equal(order, dynOrder2);
+            Assert.Equal(order, dynOrder3);
+            Assert.Equal(_query.LongCount(), dynOrder4);
         }
     }
 }

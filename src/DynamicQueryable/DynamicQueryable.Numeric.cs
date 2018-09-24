@@ -69,5 +69,37 @@ namespace System.Linq.Dynamic {
         public static object Min(this IQueryable source, string selector, IDictionary<string, object> variables, params object[] values) {
             return ExecuteLambda(source, "Min", selector, true, variables, values);
         }
+
+        public static int Count<T>(this IQueryable<T> source, string predicate, params object[] values) {
+            return Count(source, predicate, null, values);
+        }
+
+        public static int Count<T>(this IQueryable<T> source, string predicate, IDictionary<string, object> variables, params object[] values) {
+            return Count((IQueryable)source, predicate, variables, values);
+        }
+
+        public static int Count(this IQueryable source, string predicate = null, params object[] values) {
+            return Count(source, predicate, null, values);
+        }
+
+        public static int Count(this IQueryable source, string predicate, IDictionary<string, object> variables, params object[] values) {
+            return (int)ExecuteLambda(source, "Count", predicate, string.IsNullOrEmpty(predicate), variables, values);
+        }
+
+        public static long LongCount<T>(this IQueryable<T> source, string predicate, params object[] values) {
+            return LongCount(source, predicate, null, values);
+        }
+
+        public static long LongCount<T>(this IQueryable<T> source, string predicate, IDictionary<string, object> variables, params object[] values) {
+            return LongCount((IQueryable)source, predicate, variables, values);
+        }
+
+        public static long LongCount(this IQueryable source, string predicate = null, params object[] values) {
+            return LongCount(source, predicate, null, values);
+        }
+
+        public static long LongCount(this IQueryable source, string predicate, IDictionary<string, object> variables, params object[] values) {
+            return (long)ExecuteLambda(source, "LongCount", predicate, string.IsNullOrEmpty(predicate), variables, values);
+        }
     }
 }
