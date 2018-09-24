@@ -429,5 +429,31 @@ namespace DynamicQueryable.Tests {
 
             Assert.True(((IQueryable)_query.Skip(4).Take(2)).SequenceEqual(orders));
         }
+
+        [Fact]
+        public void ShouldExecuteDistinct() {
+            var orders = new List<Order> {
+                new Order { Id = 1, Price = 1 },
+                new Order { Id = 2, Price = 1 },
+                new Order { Id = 3, Price = 2 }
+            };
+            orders.Add(orders[1]);
+
+            var dynDistinct = ((IQueryable)orders.AsQueryable()).Distinct().Cast<Order>();
+            Assert.Equal(orders.Distinct(), dynDistinct);
+        }
+
+        [Fact]
+        public void ShouldExecuteReverse() {
+            Assert.Equal(_query.Reverse(), ((IQueryable)_query).Reverse());
+        }
+
+        [Fact]
+        public void ShouldExecuteDefaultIfEmpty() {
+            var query = new List<Order>().AsQueryable();
+            Assert.Equal(query.DefaultIfEmpty(), ((IQueryable)query).DefaultIfEmpty());
+            var order = new Order();
+            Assert.Equal(query.DefaultIfEmpty(order), ((IQueryable)query).DefaultIfEmpty(order));
+        }
     }
 }

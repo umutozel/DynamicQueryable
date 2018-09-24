@@ -33,6 +33,11 @@ namespace System.Linq.Dynamic {
             );
         }
 
+        private static IQueryable Handle(IQueryable source, string method) {
+            var expression = CreateExpression(source, method, true);
+            return source.Provider.CreateQuery(expression);
+        }
+
         private static IQueryable HandleConstant(IQueryable source, string method, object value) {
             var expression = CreateExpression(source, method, true, Expression.Constant(value));
             return source.Provider.CreateQuery(expression);
@@ -59,8 +64,8 @@ namespace System.Linq.Dynamic {
                 : ExecuteLambda(source, method, expression, generic, variables, values);
         }
 
-        private static object ExecuteConstant(IQueryable source, string method, bool generic, object value) {
-            var expression = CreateExpression(source, method, generic, Expression.Constant(value));
+        private static object ExecuteConstant(IQueryable source, string method, object value) {
+            var expression = CreateExpression(source, method, true, Expression.Constant(value));
             return source.Provider.Execute(expression);
         }
     }

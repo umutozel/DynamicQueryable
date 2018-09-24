@@ -103,11 +103,11 @@ namespace System.Linq.Dynamic {
         }
 
         public static object ElementAt(this IQueryable source, int index) {
-            return ExecuteConstant(source, "ElementAt", true, index);
+            return ExecuteConstant(source, "ElementAt", index);
         }
 
         public static object ElementAtOrDefault(this IQueryable source, int index) {
-            return ExecuteConstant(source, "ElementAtOrDefault", true, index);
+            return ExecuteConstant(source, "ElementAtOrDefault", index);
         }
     }
 }
