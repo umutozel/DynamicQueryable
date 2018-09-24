@@ -29,19 +29,8 @@ namespace DynamicQueryable.Tests {
 
         [Fact]
         public void ShouldThrowForNullArgs() {
-            Assert.Throws<ArgumentNullException>(() => Dyn.Where(_query, ""));
-            Assert.Throws<ArgumentNullException>(() => Dyn.First(null, "Id > 1"));
-            Assert.Throws<ArgumentNullException>(() => Dyn.Take(null, 1));
 
-            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(null, ""));
-            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(_query, ""));
-            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(null, "", ""));
-            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(_query, "", ""));
-            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(_query, "Id", ""));
-            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(null, "", "", ""));
-            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(_query, "", "", ""));
-            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(_query, "Id", "", ""));
-            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(_query, "Id", "Id", ""));
+
 
             Assert.Throws<ArgumentNullException>(() => Dyn.SelectMany(null, ""));
             Assert.Throws<ArgumentNullException>(() => Dyn.SelectMany(_query, ""));
@@ -57,6 +46,7 @@ namespace DynamicQueryable.Tests {
             Assert.Equal(orders, dynOrders1);
             Assert.Equal(orders, dynOrders2);
             Assert.Equal(orders, dynOrders3);
+            Assert.Throws<ArgumentNullException>(() => Dyn.Where(_query, ""));
         }
 
         [Fact]
@@ -118,11 +108,12 @@ namespace DynamicQueryable.Tests {
         }
 
         [Fact]
-        public void ShouldHandleTake() {
+        public void ShouldHae() {
             var orders = _query.Take(3);
             var dynOrders = ((IQueryable)_query).Take(3);
 
             Assert.Equal(orders, dynOrders);
+            Assert.Throws<ArgumentNullException>(() => Dyn.Take(null, 1));
         }
 
         [Fact]
@@ -149,6 +140,15 @@ namespace DynamicQueryable.Tests {
             Assert.Equal(group1, dynGroup1);
             Assert.Equal(group2, dynGroup2);
             Assert.Equal(group3, dynGroup3);
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(null, ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(_query, ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(null, "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(_query, "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(_query, "Id", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(null, "", "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(_query, "", "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(_query, "Id", "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(_query, "Id", "Id", ""));
         }
 
         [Fact]
@@ -246,6 +246,7 @@ namespace DynamicQueryable.Tests {
             Assert.Throws<InvalidOperationException>(() => _query.Take(0).First("Id == 1"));
             Assert.Throws<InvalidOperationException>(() => ((IQueryable)_query.Take(0)).First());
             Assert.Throws<InvalidOperationException>(() => ((IQueryable)_query.Take(0)).First("Id == 1"));
+            Assert.Throws<ArgumentNullException>(() => Dyn.First(null, "Id > 1"));
         }
 
         [Fact]
@@ -494,6 +495,32 @@ namespace DynamicQueryable.Tests {
             var dynConcat = ((IQueryable)orders1).Concat(orders2).Cast<Order>().ToList();
 
             Assert.Equal(concat, dynConcat);
+        }
+
+        [Fact]
+        public void ShouldExecuteAggregate() {
+            var query = _query.Select(o => o.Id);
+
+            var sumId1 = query.Aggregate((i1, i2) => i1 + i2);
+            var dynSumId1 = query.Aggregate("(i1, i2) => i1 + i2");
+            Assert.Equal(sumId1, dynSumId1);
+
+            var sumId2 = query.Aggregate(42, (i1, i2) => i1 + i2);
+            var dynSumId2 = query.Aggregate(42, "(i1, i2) => i1 + i2");
+            Assert.Equal(sumId2, dynSumId2);
+
+            var sumId3 = query.Aggregate(42, (i1, i2) => i1 + i2, i => i.ToString());
+            var dynSumId3 = query.Aggregate(42, "(i1, i2) => i1 + i2", "i => i.ToString()");
+
+            Assert.Throws<ArgumentNullException>(() => Dyn.Aggregate(null, ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.Aggregate(_query, ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.Aggregate(null, (object)null, ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.Aggregate(_query, (object)null, ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.Aggregate(_query, 42, ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.Aggregate(null, (object)null, "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.Aggregate(_query, (object)null, "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.Aggregate(_query, 42, "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.Aggregate(_query, 42, "Id", ""));
         }
     }
 }

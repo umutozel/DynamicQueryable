@@ -64,20 +64,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable GroupBy(this IQueryable source, string keySelector, IDictionary<string, object> variables, params object[] values) {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            if (string.IsNullOrWhiteSpace(keySelector)) throw new ArgumentNullException(nameof(keySelector));
-
-            var keyLambda = Evaluator.ToLambda(keySelector, new[] { source.ElementType }, variables, values);
-
-            return source.Provider.CreateQuery(
-                Expression.Call(
-                    typeof(Queryable),
-                    "GroupBy",
-                    new[] { source.ElementType, keyLambda.Body.Type },
-                    source.Expression,
-                    Expression.Quote(keyLambda)
-                )
-            );
+            return HandleLambda(source, "GroupBy", keySelector, true, variables, values);
         }
     }
 }
