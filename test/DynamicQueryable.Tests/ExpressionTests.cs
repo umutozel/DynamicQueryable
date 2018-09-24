@@ -415,5 +415,12 @@ namespace DynamicQueryable.Tests {
             Assert.Equal(order, dynOrder2);
             Assert.Equal(_query.Any(), dynOrder3);
         }
+
+         [Fact]
+        public void ShouldExecuteContains() {
+            var order = _query.Last();
+
+            Assert.True(((IQueryable)_query).Contains(order));
+        }
     }
 }

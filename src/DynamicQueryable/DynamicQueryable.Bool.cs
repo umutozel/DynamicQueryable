@@ -21,5 +21,9 @@ namespace System.Linq.Dynamic {
         public static bool Any(this IQueryable source, string predicate, IDictionary<string, object> variables, params object[] values) {
             return (bool)ExecuteOptionalExpression(source, "Any", predicate, string.IsNullOrEmpty(predicate), variables, values);
         }
+
+        public static bool Contains(this IQueryable source, object item) {
+            return (bool)ExecuteConstant(source, "Contains", true, item);
+        }
     }
 }
