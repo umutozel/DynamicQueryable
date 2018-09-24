@@ -243,9 +243,8 @@ namespace DynamicQueryable.Tests {
             Assert.Equal(order, dynOrder3);
             Assert.Equal(_query.First(), dynOrder4);
 
-            Assert.Throws<InvalidOperationException>(() => _query.Take(0).First());
-            Assert.Throws<InvalidOperationException>(() => ((IQueryable)_query.Take(0)).First());
             Assert.Throws<InvalidOperationException>(() => _query.Take(0).First("Id == 1"));
+            Assert.Throws<InvalidOperationException>(() => ((IQueryable)_query.Take(0)).First());
             Assert.Throws<InvalidOperationException>(() => ((IQueryable)_query.Take(0)).First("Id == 1"));
         }
 
@@ -260,9 +259,8 @@ namespace DynamicQueryable.Tests {
             Assert.Equal(order, dynOrder2);
             Assert.Equal(_query.FirstOrDefault(), dynOrder3);
 
-            Assert.Null(_query.Take(0).FirstOrDefault());
-            Assert.Null(((IQueryable)_query.Take(0)).FirstOrDefault());
             Assert.Null(_query.Take(0).FirstOrDefault("Id == 1"));
+            Assert.Null(((IQueryable)_query.Take(0)).FirstOrDefault());
             Assert.Null(((IQueryable)_query.Take(0)).FirstOrDefault("Id == 1"));
         }
 
@@ -283,11 +281,10 @@ namespace DynamicQueryable.Tests {
             Assert.Equal(dynOrder1, dynOrder2);
             Assert.Equal(orders[0], dynOrder3);
 
-            Assert.Throws<InvalidOperationException>(() => query.Take(0).Single());
-            Assert.Throws<InvalidOperationException>(() => ((IQueryable)query.Take(0)).Single());
             Assert.Throws<InvalidOperationException>(() => query.Single("o => o.Id > 1"));
-            Assert.Throws<InvalidOperationException>(() => ((IQueryable)query).Single("o => o.Id > 1"));
             Assert.Throws<InvalidOperationException>(() => query.Single("o => o.Id > 3"));
+            Assert.Throws<InvalidOperationException>(() => ((IQueryable)query.Take(0)).Single());
+            Assert.Throws<InvalidOperationException>(() => ((IQueryable)query).Single("o => o.Id > 1"));
             Assert.Throws<InvalidOperationException>(() => ((IQueryable)query).Single("o => o.Id > 3"));
         }
 
@@ -308,13 +305,13 @@ namespace DynamicQueryable.Tests {
             Assert.Equal(dynOrder1, dynOrder2);
             Assert.Equal(orders[0], dynOrder3);
 
-            Assert.Null(query.Take(0).SingleOrDefault());
-            Assert.Null(((IQueryable)query.Take(0)).SingleOrDefault());
             Assert.Null(query.SingleOrDefault("o => o.Id > 3"));
+            Assert.Null(((IQueryable)query.Take(0)).SingleOrDefault());
             Assert.Null(((IQueryable)query).SingleOrDefault("o => o.Id > 3"));
 
-            Assert.Throws<InvalidOperationException>(() => query.Single("o => o.Id > 1"));
-            Assert.Throws<InvalidOperationException>(() => ((IQueryable)query).Single("o => o.Id > 1"));
+            Assert.Throws<InvalidOperationException>(() => query.SingleOrDefault("o => o.Id > 1"));
+            Assert.Throws<InvalidOperationException>(() => ((IQueryable)query).SingleOrDefault());
+            Assert.Throws<InvalidOperationException>(() => ((IQueryable)query).SingleOrDefault("o => o.Id > 1"));
         }
 
         [Fact]
@@ -330,9 +327,8 @@ namespace DynamicQueryable.Tests {
             Assert.Equal(order, dynOrder3);
             Assert.Equal(_query.Last(), dynOrder4);
 
-            Assert.Throws<InvalidOperationException>(() => _query.Take(0).Last());
-            Assert.Throws<InvalidOperationException>(() => ((IQueryable)_query.Take(0)).Last());
             Assert.Throws<InvalidOperationException>(() => _query.Take(0).Last("Id == 1"));
+            Assert.Throws<InvalidOperationException>(() => ((IQueryable)_query.Take(0)).Last());
             Assert.Throws<InvalidOperationException>(() => ((IQueryable)_query.Take(0)).Last("Id == 1"));
         }
 
@@ -347,19 +343,27 @@ namespace DynamicQueryable.Tests {
             Assert.Equal(order, dynOrder2);
             Assert.Equal(_query.LastOrDefault(), dynOrder3);
 
-            Assert.Null(_query.Take(0).LastOrDefault());
-            Assert.Null(((IQueryable)_query.Take(0)).LastOrDefault());
             Assert.Null(_query.Take(0).LastOrDefault("Id == 1"));
-            Assert.Null(((IQueryable)_query.Take(0)).LastOrDefault("Id == 1"));
+            Assert.Null(((IQueryable)_query.Take(0)).LastOrDefault());
+            Assert.Null(((IQueryable)_query.Take(0).LastOrDefault("Id == 1")));
         }
 
         [Fact]
-        public void ShoulHandleElementAt() {
+        public void ShoulHandleElementAt() {
             var order1 = _query.ElementAt(4);
             var dynOrder1 = ((IQueryable)_query).ElementAt(4);
 
             Assert.Equal(order1, dynOrder1);
             Assert.Null(_query.ElementAtOrDefault(42));
+        }
+
+        [Fact]
+        public void ShouldExecuteElementAtOrDefault() {
+            var order = _query.ElementAtOrDefault(4);
+            var dynOrder = ((IQueryable)_query).ElementAtOrDefault(4);
+
+            Assert.Equal(order, dynOrder);
+            Assert.Null(((IQueryable)_query).ElementAtOrDefault(42));
         }
 
         [Fact]
@@ -388,6 +392,28 @@ namespace DynamicQueryable.Tests {
             Assert.Equal(order, dynOrder2);
             Assert.Equal(order, dynOrder3);
             Assert.Equal(_query.LongCount(), dynOrder4);
+        }
+
+        [Fact]
+        public void ShouldHandleAll() {
+            var all = _query.All(o => o.Id != 42);
+            var dynAll1 = _query.All("o => o.Id != @0", 42);
+            var dynAll2 = _query.All("o => o.Id != Meaning", new Dictionary<string, object> { { "Meaning", 42 } });
+
+            Assert.Equal(all, dynAll1);
+            Assert.Equal(all, dynAll2);
+        }
+
+        [Fact]
+        public void ShouldExecuteAny() {
+            var order = _query.Any(o => o.Id < AvgId);
+            var dynOrder1 = _query.Any("o => o.Id < @0", AvgId);
+            var dynOrder2 = _query.Any("o => o.Id < AvgId", new Dictionary<string, object> { { "AvgId", AvgId } });
+            var dynOrder3 = ((IQueryable)_query).Any();
+
+            Assert.Equal(order, dynOrder1);
+            Assert.Equal(order, dynOrder2);
+            Assert.Equal(_query.Any(), dynOrder3);
         }
     }
 }
