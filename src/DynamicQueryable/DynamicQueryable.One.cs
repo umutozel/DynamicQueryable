@@ -19,7 +19,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static object First(this IQueryable source, string predicate, IDictionary<string, object> variables, params object[] values) {
-            return ExecuteLambda(source, "First", predicate, string.IsNullOrEmpty(predicate), variables, values);
+            return ExecuteOptionalExpression(source, "First", predicate, string.IsNullOrEmpty(predicate), variables, values);
         }
 
         public static object FirstOrDefault<T>(this IQueryable<T> source, string predicate, params object[] values) {
@@ -35,7 +35,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static object FirstOrDefault(this IQueryable source, string predicate, IDictionary<string, object> variables, params object[] values) {
-            return ExecuteLambda(source, "FirstOrDefault", predicate, string.IsNullOrEmpty(predicate), variables, values);
+            return ExecuteOptionalExpression(source, "FirstOrDefault", predicate, string.IsNullOrEmpty(predicate), variables, values);
         }
 
         public static object Single<T>(this IQueryable<T> source, string predicate, params object[] values) {
@@ -51,7 +51,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static object Single(this IQueryable source, string predicate, IDictionary<string, object> variables, params object[] values) {
-            return ExecuteLambda(source, "Single", predicate, string.IsNullOrEmpty(predicate), variables, values);
+            return ExecuteOptionalExpression(source, "Single", predicate, string.IsNullOrEmpty(predicate), variables, values);
         }
 
         public static object SingleOrDefault<T>(this IQueryable<T> source, string predicate, params object[] values) {
@@ -67,7 +67,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static object SingleOrDefault(this IQueryable source, string predicate, IDictionary<string, object> variables, params object[] values) {
-            return ExecuteLambda(source, "SingleOrDefault", predicate, string.IsNullOrEmpty(predicate), variables, values);
+            return ExecuteOptionalExpression(source, "SingleOrDefault", predicate, string.IsNullOrEmpty(predicate), variables, values);
         }
 
         public static object Last<T>(this IQueryable<T> source, string predicate, params object[] values) {
@@ -83,7 +83,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static object Last(this IQueryable source, string predicate, IDictionary<string, object> variables, params object[] values) {
-            return ExecuteLambda(source, "Last", predicate, string.IsNullOrEmpty(predicate), variables, values);
+            return ExecuteOptionalExpression(source, "Last", predicate, string.IsNullOrEmpty(predicate), variables, values);
         }
 
         public static object LastOrDefault<T>(this IQueryable<T> source, string predicate, params object[] values) {
@@ -99,7 +99,15 @@ namespace System.Linq.Dynamic {
         }
 
         public static object LastOrDefault(this IQueryable source, string predicate, IDictionary<string, object> variables, params object[] values) {
-            return ExecuteLambda(source, "LastOrDefault", predicate, string.IsNullOrEmpty(predicate), variables, values);
+            return ExecuteOptionalExpression(source, "LastOrDefault", predicate, string.IsNullOrEmpty(predicate), variables, values);
+        }
+
+        public static object ElementAt(this IQueryable source, int index) {
+            return ExecuteConstant(source, "ElementAt", true, index);
+        }
+
+        public static object ElementAtOrDefault(this IQueryable source, int index) {
+            return ExecuteConstant(source, "ElementAtOrDefault", true, index);
         }
     }
 }

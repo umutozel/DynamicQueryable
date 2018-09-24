@@ -49,11 +49,19 @@ namespace System.Linq.Dynamic {
         }
 
         private static object ExecuteLambda(IQueryable source, string method, string expression, bool generic, IDictionary<string, object> variables, params object[] values) {
-            if (string.IsNullOrEmpty(expression))
-                return Execute(source, method, generic);
-
             var lambda = CreateLambda(source, method, expression, generic, variables, values);
             return source.Provider.Execute(lambda);
+        }
+
+        private static object ExecuteOptionalExpression(IQueryable source, string method, string expression, bool generic, IDictionary<string, object> variables, params object[] values) {
+            return string.IsNullOrEmpty(expression)
+                ? Execute(source, method, generic)
+                : ExecuteLambda(source, method, expression, generic, variables, values);
+        }
+
+        private static object ExecuteConstant(IQueryable source, string method, bool generic, object value) {
+            var expression = CreateExpression(source, method, generic, Expression.Constant(value));
+            return source.Provider.Execute(expression);
         }
     }
 }

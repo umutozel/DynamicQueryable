@@ -19,7 +19,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static object Average(this IQueryable source, string selector, IDictionary<string, object> variables, params object[] values) {
-            return ExecuteLambda(source, "Average", selector, false, variables, values);
+            return ExecuteOptionalExpression(source, "Average", selector, false, variables, values);
         }
 
         public static object Sum<T>(this IQueryable<T> source, string selector, params object[] values) {
@@ -35,7 +35,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static object Sum(this IQueryable source, string selector, IDictionary<string, object> variables, params object[] values) {
-            return ExecuteLambda(source, "Sum", selector, false, variables, values);
+            return ExecuteOptionalExpression(source, "Sum", selector, false, variables, values);
         }
 
         public static object Max<T>(this IQueryable<T> source, string selector, params object[] values) {
@@ -51,7 +51,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static object Max(this IQueryable source, string selector, IDictionary<string, object> variables, params object[] values) {
-            return ExecuteLambda(source, "Max", selector, true, variables, values);
+            return ExecuteOptionalExpression(source, "Max", selector, true, variables, values);
         }
 
         public static object Min<T>(this IQueryable<T> source, string selector, params object[] values) {
@@ -67,7 +67,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static object Min(this IQueryable source, string selector, IDictionary<string, object> variables, params object[] values) {
-            return ExecuteLambda(source, "Min", selector, true, variables, values);
+            return ExecuteOptionalExpression(source, "Min", selector, true, variables, values);
         }
 
         public static int Count<T>(this IQueryable<T> source, string predicate, params object[] values) {
@@ -83,7 +83,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static int Count(this IQueryable source, string predicate, IDictionary<string, object> variables, params object[] values) {
-            return (int)ExecuteLambda(source, "Count", predicate, string.IsNullOrEmpty(predicate), variables, values);
+            return (int)ExecuteOptionalExpression(source, "Count", predicate, string.IsNullOrEmpty(predicate), variables, values);
         }
 
         public static long LongCount<T>(this IQueryable<T> source, string predicate, params object[] values) {
@@ -99,7 +99,7 @@ namespace System.Linq.Dynamic {
         }
 
         public static long LongCount(this IQueryable source, string predicate, IDictionary<string, object> variables, params object[] values) {
-            return (long)ExecuteLambda(source, "LongCount", predicate, string.IsNullOrEmpty(predicate), variables, values);
+            return (long)ExecuteOptionalExpression(source, "LongCount", predicate, string.IsNullOrEmpty(predicate), variables, values);
         }
     }
 }

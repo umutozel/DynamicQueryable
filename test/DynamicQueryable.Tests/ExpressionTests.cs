@@ -28,7 +28,7 @@ namespace DynamicQueryable.Tests {
         }
 
         [Fact]
-        public void ShouldThrowWhenSourceNull() {
+        public void ShouldThrowForNullArgs() {
             Assert.Throws<ArgumentNullException>(() => Dyn.Where(_query, ""));
             Assert.Throws<ArgumentNullException>(() => Dyn.First(null, "Id > 1"));
             Assert.Throws<ArgumentNullException>(() => Dyn.Take(null, 1));
@@ -351,6 +351,15 @@ namespace DynamicQueryable.Tests {
             Assert.Null(((IQueryable)_query.Take(0)).LastOrDefault());
             Assert.Null(_query.Take(0).LastOrDefault("Id == 1"));
             Assert.Null(((IQueryable)_query.Take(0)).LastOrDefault("Id == 1"));
+        }
+
+        [Fact]
+        public void ShoulHandleElementAt() {
+            var order1 = _query.ElementAt(4);
+            var dynOrder1 = ((IQueryable)_query).ElementAt(4);
+
+            Assert.Equal(order1, dynOrder1);
+            Assert.Null(_query.ElementAtOrDefault(42));
         }
 
         [Fact]
