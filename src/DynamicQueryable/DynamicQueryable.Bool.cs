@@ -25,5 +25,9 @@ namespace System.Linq.Dynamic {
         public static bool Contains(this IQueryable source, object item) {
             return (bool)ExecuteConstant(source, "Contains", true, item);
         }
+
+        public static bool SequenceEqual(this IQueryable source, IEnumerable<object> items) {
+            return (bool)ExecuteConstant(source, "SequenceEqual", true, items);
+        }
     }
 }
