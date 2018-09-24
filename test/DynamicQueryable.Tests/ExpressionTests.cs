@@ -522,5 +522,22 @@ namespace DynamicQueryable.Tests {
             Assert.Throws<ArgumentNullException>(() => Dyn.Aggregate(_query, 42, "", ""));
             Assert.Throws<ArgumentNullException>(() => Dyn.Aggregate(_query, 42, "Id", ""));
         }
+
+        [Fact]
+        public void ShouldHandleJoin() {
+            var orders = _query.ToList().AsQueryable();
+            var lines = _query.SelectMany(o => o.Lines).ToList().AsQueryable();
+
+            var join = orders.Join(lines, o => o.Id, l => l.OrderId, (o, l) => o.Id + l.Id).ToList();
+            var dynJoin = orders.Join(lines, "o => o.Id", "l => l.OrderId", "(o, l) => o.Id + l.Id").Cast<int>().ToList();
+
+            Assert.Equal(join, dynJoin);
+
+            Assert.Throws<ArgumentNullException>(() => Dyn.Join(null, null, "", "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.Join(_query, null, "", "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.Join(_query, _query, "", "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.Join(_query, _query, "Id", "", ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.Join(_query, _query, "Id", "Id", ""));
+        }
     }
 }
