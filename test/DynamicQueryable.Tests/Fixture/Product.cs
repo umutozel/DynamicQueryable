@@ -1,4 +1,4 @@
-﻿namespace DynamicQueryable.Tests.Model {
+namespace DynamicQueryable.Tests.Fixture {
 
     public class Product {
         public int Id { get; set; }

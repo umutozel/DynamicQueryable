@@ -1,6 +1,6 @@
-﻿namespace DynamicQueryable.Tests.Model {
+namespace DynamicQueryable.Tests.Fixture {
 
-    public class OrderDetail {
+    public class OrderLine {
         public int Id { get; set; }
         public Product Product;
         public int ProductId { get; set; }

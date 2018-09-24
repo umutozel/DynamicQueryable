@@ -1,4 +1,4 @@
-version: 1.0.{build}
+version: 2.0.{build}
 
 image: Visual Studio 2017
 
@@ -19,13 +19,13 @@ before_build:
   - dotnet restore
 
 after_build:
-- dotnet pack DynamicQueryable\DynamicQueryable.csproj -c Release /p:Version=%appveyor_build_version%
-- appveyor PushArtifact DynamicQueryable\bin\Release\DynamicQueryable.%appveyor_build_version%.nupkg
+- dotnet pack src\DynamicQueryable\DynamicQueryable.csproj -c Release /p:Version=%appveyor_build_version%
+- appveyor PushArtifact src\DynamicQueryable\bin\Release\DynamicQueryable.%appveyor_build_version%.nupkg
 
 test_script:
-- dotnet test -c %CONFIGURATION% DynamicQueryable.Tests\DynamicQueryable.Tests.csproj
+- dotnet test -c %CONFIGURATION% test\DynamicQueryable.Tests\DynamicQueryable.Tests.csproj
 - nuget install OpenCover -Version 4.6.519 -OutputDirectory tools
-- .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:"c:\Program Files\dotnet\dotnet.exe" -targetargs:"test -f netcoreapp2.0 -c %CONFIGURATION% DynamicQueryable.Tests/DynamicQueryable.Tests.csproj" -filter:"+[DynamicQueryable*]* -[DynamicQueryable.*Tests*]*" -excludebyattribute:*.ExcludeFromCodeCoverage* -output:opencoverCoverage.xml -oldStyle -register:user
+- .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:"c:\Program Files\dotnet\dotnet.exe" -targetargs:"test -c %CONFIGURATION% test/DynamicQueryable.Tests/DynamicQueryable.Tests.csproj" -output:opencoverCoverage.xml -oldStyle -register:user
 - nuget install coveralls.net -Version 0.7.0 -OutputDirectory tools
 - .\tools\coveralls.net.0.7.0\tools\csmacnz.Coveralls.exe --opencover -i opencoverCoverage.xml --repoToken "%COVERALLS_REPO_TOKEN%" --useRelativePaths --commitId "%APPVEYOR_REPO_COMMIT%" --commitBranch "%APPVEYOR_REPO_BRANCH%" --commitAuthor "%APPVEYOR_REPO_COMMIT_AUTHOR%" --commitEmail "%APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL%" --commitMessage "%APPVEYOR_REPO_COMMIT_MESSAGE%" --jobId "%APPVEYOR_BUILD_NUMBER%" --serviceName appveyor
 
