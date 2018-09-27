@@ -8,7 +8,8 @@
     <Copyright>Copyright (c) 2018</Copyright>
     <PackageLicenseUrl>https://github.com/umutozel/DynamicQueryable/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/umutozel/DynamicQueryable</PackageProjectUrl>
-    <PackageIconUrl>https://image.ibb.co/njzZCK/DynamicQueryable.png</PackageIconUrl>
+    <PackageIconUrl>https://cdn.rawgit.com/umutozel/DynamicQueryable/master/icon.png</PackageIconUrl>
+    <PackageIconUrl>https://image.ibb.co/depGu9/lambda.png</PackageIconUrl>
     <PackageTags>csharp expression linq string dynamic iqueryable</PackageTags>
     <RepositoryUrl>https://github.com/umutozel/DynamicQueryable</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
