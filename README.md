@@ -9,3 +9,14 @@ Construct Linq queries using strings.
 
 [![GitHub stars](https://img.shields.io/github/stars/umutozel/DynamicQueryable.svg?style=social&label=Star)](https://github.com/umutozel/DynamicQueryable)
 [![GitHub forks](https://img.shields.io/github/forks/umutozel/DynamicQueryable.svg?style=social&label=Fork)](https://github.com/umutozel/DynamicQueryable)
+
+# Installation
+
+#### Package Manager
+```
+dotnet add package DynamicQueryable
+```
+#### Dotnet CLI
+```
+dotnet add package DynamicQueryable
+```
