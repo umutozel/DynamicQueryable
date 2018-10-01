@@ -33,3 +33,12 @@ query.Where("o => o.Id > @0", 5).ToList();
 // or you can use named variables, AvgId will be replaced with value from given dictionary 
 query.Where("o => o.Id > AvgId", new Dictionary<string, object> { { "AvgId", AvgId } }).ToList();
 ```
+
+# Supported Methods
+Aggregate, All, Any, Average, Concat, Contains, Count, 
+DefaultIfEmpty, Distinct, Except, ElementAt, ElementAtOrDefault, 
+First, FirstOrDefault, GroupBy, GroupJoin, Intersect, Join, 
+Last, LastOrDefault, LongCount, Max, Min, OrderBy, OrderByDescending, 
+Reverse, Select, SelectMany, SequenceEqual, Single, SingleOrDefault, 
+Skip, SkipWhile, Sum, Take, TakeWhile, ThenBy, ThenByDescending, Union, Where, Zip
+
