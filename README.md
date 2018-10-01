@@ -16,7 +16,20 @@ Construct Linq queries using strings.
 ```
 dotnet add package DynamicQueryable
 ```
-#### Dotnet CLI
+#### .Net CLI
 ```
 dotnet add package DynamicQueryable
+```
+
+# Getting Started
+
+Start with adding System.Linq.Dynamic namespace to usings.
+
+```csharp
+// you can use inline values
+query.Where("o => o.Id > 5").ToList();
+// or you can pass ordered values, @0 will be replaced with first argument
+query.Where("o => o.Id > @0", 5).ToList();
+// or you can use named variables, AvgId will be replaced with value from given dictionary 
+query.Where("o => o.Id > AvgId", new Dictionary<string, object> { { "AvgId", AvgId } }).ToList();
 ```
