@@ -43,4 +43,4 @@ Reverse, Select, SelectMany, SequenceEqual, Single, SingleOrDefault,
 Skip, SkipWhile, Sum, Take, TakeWhile, ThenBy, ThenByDescending, Union, Where, Zip
 
 # License
-Linquest is under the [MIT License](LICENSE).
+DynamicQueryable is under the [MIT License](LICENSE).
