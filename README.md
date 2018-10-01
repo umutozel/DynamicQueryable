@@ -42,3 +42,5 @@ Last, LastOrDefault, LongCount, Max, Min, OrderBy, OrderByDescending,
 Reverse, Select, SelectMany, SequenceEqual, Single, SingleOrDefault, 
 Skip, SkipWhile, Sum, Take, TakeWhile, ThenBy, ThenByDescending, Union, Where, Zip
 
+# License
+Linquest is under the [MIT License](LICENSE).
