@@ -14,7 +14,7 @@ Construct Linq queries using strings.
 
 #### Package Manager
 ```
-dotnet add package DynamicQueryable
+Install-Package DynamicQueryable
 ```
 #### .Net CLI
 ```
