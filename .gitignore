@@ -37,3 +37,4 @@ msbuild.wrn
 coverage.json
 coverage.xml
 lcov.info
+.ipynb_checkpoints
