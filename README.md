@@ -10,6 +10,10 @@ Construct Linq queries using strings.
 [![GitHub stars](https://img.shields.io/github/stars/umutozel/DynamicQueryable.svg?style=social&label=Star)](https://github.com/umutozel/DynamicQueryable)
 [![GitHub forks](https://img.shields.io/github/forks/umutozel/DynamicQueryable.svg?style=social&label=Fork)](https://github.com/umutozel/DynamicQueryable)
 
+Play with **jupyter notebook readme** on:
+
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/umutozel/DynamicQueryable/master)
+
 # Installation
 
 #### Package Manager
