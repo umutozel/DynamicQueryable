@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -14,14 +13,11 @@
     <RepositoryUrl>https://github.com/umutozel/DynamicQueryable</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Jokenizer.Net" Version="1.0.3" />
-  </ItemGroup>
-
   <PropertyGroup>
     <DebugType>full</DebugType>
     <DebugSymbols>True</DebugSymbols>
   </PropertyGroup>
-  
+  <ItemGroup>
+    <PackageReference Include="Jokenizer.Net" Version="1.1.1"/>
+  </ItemGroup>
 </Project>
