@@ -1,24 +1,22 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using Jokenizer.Net;
+using VarType = System.Collections.Generic.IDictionary<string, object>;
 
 namespace System.Linq.Dynamic {
 
     public static partial class DynamicQueryable {
 
-        public static IQueryable Select(this IQueryable source, string selector, params object[] values) {
-            return Select(source, selector, null, values);
-        }
+        public static IQueryable Select(this IQueryable source, string selector, params object[] values)
+            => Select(source, selector, null, values);
 
-        public static IQueryable Select(this IQueryable source, string selector, IDictionary<string, object> variables, params object[] values) {
-            return HandleLambda(source, "Select", selector, true, variables, values);
-        }
+        public static IQueryable Select(this IQueryable source, string selector, VarType variables, params object[] values)
+            => HandleLambda(source, "Select", selector, true, variables, values);
 
-        public static IQueryable SelectMany(this IQueryable source, string selector, params object[] values) {
-            return SelectMany(source, selector, null, values);
-        }
+        public static IQueryable SelectMany(this IQueryable source, string selector, params object[] values)
+            => SelectMany(source, selector, null, values);
 
-        public static IQueryable SelectMany(this IQueryable source, string selector, Dictionary<string, object> variables, params object[] values) {
+        public static IQueryable SelectMany(this IQueryable source, string selector, VarType variables, params object[] values) {
             if (source == null) throw new ArgumentNullException(nameof(source));
             if (string.IsNullOrWhiteSpace(selector)) throw new ArgumentNullException(nameof(selector));
 
