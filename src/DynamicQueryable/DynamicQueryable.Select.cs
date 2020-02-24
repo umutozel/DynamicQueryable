@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using Jokenizer.Net;
 using VarType = System.Collections.Generic.IDictionary<string, object>;
+#nullable enable
 
 namespace System.Linq.Dynamic {
 
@@ -10,13 +11,13 @@ namespace System.Linq.Dynamic {
         public static IQueryable Select(this IQueryable source, string selector, params object[] values)
             => Select(source, selector, null, values);
 
-        public static IQueryable Select(this IQueryable source, string selector, VarType variables, params object[] values)
+        public static IQueryable Select(this IQueryable source, string selector, VarType? variables, params object[] values)
             => HandleLambda(source, "Select", selector, true, variables, values);
 
         public static IQueryable SelectMany(this IQueryable source, string selector, params object[] values)
             => SelectMany(source, selector, null, values);
 
-        public static IQueryable SelectMany(this IQueryable source, string selector, VarType variables, params object[] values) {
+        public static IQueryable SelectMany(this IQueryable source, string selector, VarType? variables, params object[] values) {
             if (source == null) throw new ArgumentNullException(nameof(source));
             if (string.IsNullOrWhiteSpace(selector)) throw new ArgumentNullException(nameof(selector));
 

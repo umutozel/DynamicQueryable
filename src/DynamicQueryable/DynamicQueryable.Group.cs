@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using Jokenizer.Net;
 using VarType = System.Collections.Generic.IDictionary<string, object>;
+#nullable enable
 
 namespace System.Linq.Dynamic {
 
@@ -10,7 +11,7 @@ namespace System.Linq.Dynamic {
         public static IQueryable GroupBy(this IQueryable source, string keySelector, string elementSelector, string resultSelector, params object[] values)
             => GroupBy(source, keySelector, elementSelector, resultSelector, null, values);
 
-        public static IQueryable GroupBy(this IQueryable source, string keySelector, string elementSelector, string resultSelector, VarType variables, params object[] values) {
+        public static IQueryable GroupBy(this IQueryable source, string keySelector, string elementSelector, string resultSelector, VarType? variables, params object[] values) {
             if (source == null) throw new ArgumentNullException(nameof(source));
             if (string.IsNullOrWhiteSpace(keySelector)) throw new ArgumentNullException(nameof(keySelector));
             if (string.IsNullOrWhiteSpace(elementSelector)) throw new ArgumentNullException(nameof(elementSelector));
@@ -35,9 +36,9 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable GroupBy(this IQueryable source, string keySelector, string resultSelector, params object[] values)
-            => GroupBy(source, keySelector, resultSelector, (VarType)null, values);
+            => GroupBy(source, keySelector, resultSelector, (VarType?)null, values);
 
-        public static IQueryable GroupBy(this IQueryable source, string keySelector, string resultSelector, VarType variables, params object[] values) {
+        public static IQueryable GroupBy(this IQueryable source, string keySelector, string resultSelector, VarType? variables, params object[] values) {
             if (source == null) throw new ArgumentNullException(nameof(source));
             if (string.IsNullOrWhiteSpace(keySelector)) throw new ArgumentNullException(nameof(keySelector));
             if (string.IsNullOrWhiteSpace(resultSelector)) throw new ArgumentNullException(nameof(resultSelector));
@@ -59,9 +60,9 @@ namespace System.Linq.Dynamic {
         }
 
         public static IQueryable GroupBy(this IQueryable source, string keySelector, params object[] values)
-            => GroupBy(source, keySelector, (VarType)null, values);
+            => GroupBy(source, keySelector, (VarType?)null, values);
 
-        public static IQueryable GroupBy(this IQueryable source, string keySelector, VarType variables, params object[] values)
+        public static IQueryable GroupBy(this IQueryable source, string keySelector, VarType? variables, params object[] values)
             => HandleLambda(source, "GroupBy", keySelector, true, variables, values);
     }
 }
