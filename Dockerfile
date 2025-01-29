@@ -60,8 +60,8 @@ COPY ./NuGet.config ${HOME}/nuget.config
 RUN chown -R ${NB_UID} ${HOME}
 USER ${USER}
 
-# Install lastest build from master branch of Microsoft.DotNet.Interactive from myget
-RUN dotnet tool install -g dotnet-try --version "1.0.19569.5" --add-source "https://dotnet.myget.org/F/dotnet-try/api/v3/index.json"
+# Install lastest build from master branch of Microsoft.DotNet.Interactive
+RUN dotnet tool install -g Microsoft.dotnet-interactive --version "1.0.0" --add-source "https://api.nuget.org/v3/index.json"
 
 # Or install latest Microsoft.DotNet.Interactive from nuget
 # RUN dotnet tool install -g dotnet-try 

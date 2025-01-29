@@ -525,13 +525,13 @@ namespace DynamicQueryable.Tests {
             var lineCounts = _query.Select(o => o.Lines.Count).ToList();
 
             var zip = _query.Zip(lineCounts, (o, l) => o.Id + l).ToList();
-            var dynZip = _query.Zip(lineCounts, "(o, l) => o.Id + l").Cast<int>().ToList();
+            var dynZip = Dyn.Zip(_query, lineCounts, "(o, l) => o.Id + l").Cast<int>().ToList();
 
             Assert.Equal(zip, dynZip);
 
-            Assert.Throws<ArgumentNullException>(() => Dyn.Zip<int>(null, (IEnumerable<int>)null, ""));
-            Assert.Throws<ArgumentNullException>(() => Dyn.Zip<int>(_query, (IEnumerable<int>)null, ""));
-            Assert.Throws<ArgumentNullException>(() => Dyn.Zip<int>(_query, Enumerable.Empty<int>(), ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.Zip<int>(null!, null!, ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.Zip<int>(_query, null!, ""));
+            Assert.Throws<ArgumentNullException>(() => Dyn.Zip<int>(_query, [], ""));
         }
     }
 }
