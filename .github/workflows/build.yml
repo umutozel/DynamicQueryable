@@ -35,6 +35,34 @@ jobs:
         with:
           dotnet-version: '9.0'
 
+      - name: Update .csproj version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          $VERSION = $env:GITHUB_REF -replace 'refs/tags/v', ''
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Updating .csproj version to: $VERSION"
+
+          [xml]$xml = Get-Content src\DynamicQueryable\DynamicQueryable.csproj
+          $propertyGroup = $xml.Project.PropertyGroup | Where-Object { $_.Version }
+          
+          if ($propertyGroup) {
+            echo "Existing <Version> found. Updating..."
+            $propertyGroup.Version = $VERSION
+          } else {
+            echo "No existing <Version> tag. Creating new one..."
+            $newPropertyGroup = $xml.CreateElement("PropertyGroup")
+            $versionElement = $xml.CreateElement("Version")
+            $versionElement.InnerText = $VERSION
+            $newPropertyGroup.AppendChild($versionElement) | Out-Null
+            $xml.Project.AppendChild($newPropertyGroup) | Out-Null
+          }
+
+          $xml.Save("src/DynamicQueryable/DynamicQueryable.csproj")
+
+          echo "Updated .csproj version:"
+          Get-Content src/DynamicQueryable/DynamicQueryable.csproj
+        shell: pwsh
+
       - name: Restore dependencies
         run: dotnet restore
 
@@ -50,14 +78,6 @@ jobs:
         run: |
           curl -s https://codecov.io/bash > codecov
           bash codecov -f opencoverCoverage.xml -t ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Set version from tag
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          $VERSION = $env:GITHUB_REF -replace 'refs/tags/v', ''
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Version set to: $VERSION"
-        shell: pwsh
 
       - name: Pack NuGet package
         if: startsWith(github.ref, 'refs/tags/v')
