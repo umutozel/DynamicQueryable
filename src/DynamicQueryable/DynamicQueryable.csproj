@@ -1,25 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>13</LangVersion>
-    <Nullable>enable</Nullable>
+    <Version>2.1.0</Version>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <Description>Construct Linq queries using strings.</Description>
     <Authors>Umut Özel</Authors>
+    <Description>Construct Linq queries using strings.</Description>
     <Copyright>Copyright (c) 2018</Copyright>
-    <PackageLicenseUrl>https://github.com/umutozel/DynamicQueryable/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/umutozel/DynamicQueryable</PackageProjectUrl>
     <PackageIconUrl>https://cdn.rawgit.com/umutozel/DynamicQueryable/master/icon.png</PackageIconUrl>
-    <PackageIconUrl>https://image.ibb.co/depGu9/lambda.png</PackageIconUrl>
+    <PackageIcon>..\..\icon.png</PackageIcon>
     <PackageTags>csharp expression linq string dynamic iqueryable</PackageTags>
     <RepositoryUrl>https://github.com/umutozel/DynamicQueryable</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-  </PropertyGroup>
-  <PropertyGroup>
+    <LangVersion>13</LangVersion>
+    <Nullable>enable</Nullable>
     <DebugType>full</DebugType>
     <DebugSymbols>True</DebugSymbols>
   </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="Jokenizer.Net" Version="1.1.1"/>
+    <PackageReference Include="Jokenizer.Net" Version="1.2.0" />
   </ItemGroup>
+  
 </Project>

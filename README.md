@@ -1,9 +1,10 @@
 # DynamicQueryable
 Construct Linq queries using strings.
 
-[![Build status](https://ci.appveyor.com/api/projects/status/odi0k0rsdbkk5mqn?svg=true)](https://ci.appveyor.com/project/umutozel/dynamicqueryable)
-[![Coverage Status](https://coveralls.io/repos/github/umutozel/DynamicQueryable/badge.svg?branch=master)](https://coveralls.io/github/umutozel/DynamicQueryable?branch=master)
-[![NuGet Badge](https://buildstats.info/nuget/DynamicQueryable)](https://www.nuget.org/packages/DynamicQueryable/)
+[![Build and Test](https://github.com/umutozel/DynamicQueryable/actions/workflows/build.yml/badge.svg)](https://github.com/umutozel/DynamicQueryable/actions/workflows/build.yml)
+[![codecov](https://codecov.io/gh/umutozel/DynamicQueryable/graph/badge.svg?token=5A9hHTDVFc)](https://codecov.io/gh/umutozel/DynamicQueryable)
+[![NuGet Badge](https://img.shields.io/nuget/v/DynamicQueryable.svg)](https://www.nuget.org/packages/DynamicQueryable/)
+![NuGet Downloads](https://img.shields.io/nuget/dt/DynamicQueryable.svg)
 [![GitHub issues](https://img.shields.io/github/issues/umutozel/DynamicQueryable.svg)](https://github.com/umutozel/DynamicQueryable/issues)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/umutozel/DynamicQueryable/master/LICENSE)
 
