@@ -571,4 +571,13 @@ public class ExpressionTests {
         Assert.Throws<ArgumentNullException>(() => _query.Zip<int>(null!, ""));
         Assert.Throws<ArgumentNullException>(() => _query.Zip<int>([], ""));
     }
+
+    [Fact]
+    public void ShouldHandleEnumerableParameter() {
+        var source = new[] { 1, 2, 3, 4, 5 };
+        var sample = new[] { 2, 4 };
+        var result = source.AsQueryable().Where($"i => @0.Contains(i)", sample).ToList();
+
+        Assert.Equal([2, 4], result);
+    }
 }
