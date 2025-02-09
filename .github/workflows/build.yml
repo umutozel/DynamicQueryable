@@ -1,0 +1,68 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'test/**'
+    tags:
+      - 'v*'
+
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+      NUGET_XMLDOC_MODE: skip
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 9.0
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build project
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Run tests with coverage
+        run: |
+          dotnet tool install --global coverlet.console
+          coverlet test/DynamicQueryable.Tests/bin/Release/net9.0/DynamicQueryable.Tests.dll --target "dotnet" --targetargs "test test/DynamicQueryable.Tests/DynamicQueryable.Tests.csproj --no-build -c Release" --format opencover --output opencoverCoverage.xml
+
+      - name: Upload coverage to Codecov
+        run: |
+          curl -s https://codecov.io/bash > codecov
+          bash codecov -f opencoverCoverage.xml -t ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Set version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          $VERSION = $env:GITHUB_REF -replace 'refs/tags/v', ''
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Version set to: $VERSION"
+        shell: pwsh
+
+      - name: Pack NuGet package
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: dotnet pack src\DynamicQueryable\DynamicQueryable.csproj --configuration Release --output "${{ github.workspace }}\packages"
+
+      - name: Publish NuGet package (on tag push)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: dotnet nuget push "${{ github.workspace }}\packages\DynamicQueryable.*.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate
