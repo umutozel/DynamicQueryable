@@ -160,9 +160,9 @@ public class ExpressionTests {
     [Fact]
     public void ShouldHandleDistinct() {
         var orders = new List<Order> {
-            new Order { Id = 1, Price = 1 },
-            new Order { Id = 2, Price = 1 },
-            new Order { Id = 3, Price = 2 }
+            new() { Id = 1, Price = 1 },
+            new() { Id = 2, Price = 1 },
+            new() { Id = 3, Price = 2 }
         };
         orders.Add(orders[1]);
 
@@ -419,9 +419,9 @@ public class ExpressionTests {
     [Fact]
     public void ShouldHandleSingle() {
         var orders = new List<Order> {
-            new Order { Id = 1, Price = 1 },
-            new Order { Id = 2, Price = 1 },
-            new Order { Id = 3, Price = 2 }
+            new() { Id = 1, Price = 1 },
+            new() { Id = 2, Price = 1 },
+            new() { Id = 3, Price = 2 }
         };
         var query = orders.AsQueryable();
 
