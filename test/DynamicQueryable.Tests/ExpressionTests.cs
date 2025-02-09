@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic;
-using Giver;
 using Xunit;
 
 namespace DynamicQueryable.Tests;
@@ -15,17 +14,53 @@ public class ExpressionTests {
     private readonly double _avgId;
 
     public ExpressionTests() {
-        var orders = Give<Order>
-            .ToMe(o => o.Lines = Give<OrderLine>
-                .ToMe(od => {
-                    od.OrderId = o.Id;
-                    od.Order = o;
-                    od.Product = Give<Product>.ToMe(p => p.Supplier = Give<Company>.Single());
-                }).Now(new Random().Next(3, 15))
-            ).Now(20);
+        var orders = CreateOrders();
         _avgId = orders.Average(o => o.Id);
-
         _query = orders.AsQueryable();
+    }
+
+    private static List<Order> CreateOrders() {
+        var random = new Random();
+
+        var companies = Enumerable.Range(1, 10)
+            .Select(i => new Company {
+                Id = i,
+                CompanyName = $"Company {i}",
+                Phone = $"(555) {random.Next(100, 999)}-{random.Next(1000, 9999)}"
+            })
+            .ToList();
+
+        var products = Enumerable.Range(1, 50)
+            .Select(i => new Product {
+                Id = i,
+                Name = $"Product {i}",
+                Supplier = companies[random.Next(companies.Count)]
+            })
+            .ToList();
+
+        var orders = Enumerable.Range(1, 20)
+            .Select(orderId => new Order {
+                Id = orderId,
+                OrderNo = $"ORD{orderId:0000}",
+                OrderDate = DateTime.Today.AddDays(-random.Next(30)),
+                Price = null,
+                Lines = Enumerable.Range(1, random.Next(3, 15))
+                    .Select(lineId => new OrderLine {
+                        Id = lineId,
+                        OrderId = orderId,
+                        Count = random.Next(1, 10),
+                        UnitPrice = Math.Round(random.NextDouble() * 100, 2),
+                        Product = products[random.Next(products.Count)]
+                    })
+                    .ToList()
+            })
+            .ToList();
+
+        foreach (var order in orders) {
+            order.Price = order.Lines.Sum(line => (line.UnitPrice ?? 0) * (line.Count ?? 1));
+        }
+
+        return orders;
     }
 
     [Fact]
