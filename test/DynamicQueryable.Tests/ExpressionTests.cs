@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Dynamic;
 using Xunit;
@@ -579,5 +580,32 @@ public class ExpressionTests {
         var result = source.AsQueryable().Where($"i => @0.Contains(i)", sample).ToList();
 
         Assert.Equal([2, 4], result);
+    }
+
+    [Fact]
+    public void ShouldHandleBooleanOperatorGrouping() {
+        var list = new List<Entity> {
+            new() {
+                IsActive = true,
+                IsSomething = 1
+            },
+            new() {
+                IsActive = false,
+                IsSomething = 1
+            },
+            new() {
+                IsActive = true,
+                IsSomething = 2
+            },
+            new() {
+                IsActive = false,
+                IsSomething = 2
+            },
+        }.AsQueryable();
+
+        var linqResult = list.Where(o => (o.IsActive && o.IsSomething == 1) || (o.IsActive == false && o.IsSomething == 2)).ToArray();
+        var dynamicResult = list.Where("o => (o.IsActive && o.IsSomething == 1) || (o.IsActive == false && o.IsSomething == 2)").ToArray();
+
+        Assert.Equal(linqResult, dynamicResult);
     }
 }
