@@ -621,6 +621,7 @@ public class ExpressionTests {
         }.AsQueryable();
         var parameters = new Dictionary<string, object?> { { "searchText", searchText } };
 
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         var r1 = data.Where(i => i.Name != null && i.Name.Contains(searchText)).ToList();
         var d1 = data.Where("i => i.Name != null && i.Name.Contains(searchText)", parameters).ToList();
         Assert.Equal(r1, d1);
@@ -629,7 +630,9 @@ public class ExpressionTests {
         var d2 = data.OrderByDescending("i => i.Name").ToList();
         Assert.Equal(r2, d2);
 
+#pragma warning disable CS0472 // The result of the expression is always the same since a value of this type is never equal to 'null'
         var r3 = data.Where(i => i.Age != null && i.Age.ToString().Contains(searchText)).ToList();
+#pragma warning restore CS0472 // The result of the expression is always the same since a value of this type is never equal to 'null'
         var func = Evaluator.ToFunc<bool>(
             "i.Age != null && i.Age.ToString().Contains(searchText)",
             new Dictionary<string, object?> {{ "searchText", searchText }, { "i", data.First() }}
@@ -642,7 +645,9 @@ public class ExpressionTests {
         var d4 = data.Where("i => i.Number != null && i.Number.ToString().Contains(searchText)", parameters).ToList();
         Assert.Equal(r4, d4);
 
+#pragma warning disable CS0472 // The result of the expression is always the same since a value of this type is never equal to 'null'
         var r5 = data.Where(i => i.Address != null! && i.Address.Zip != null && i.Address.Zip.ToString().Contains(searchText)).ToList();
+#pragma warning restore CS0472 // The result of the expression is always the same since a value of this type is never equal to 'null'
         var d5 = data.Where("i => i.Address != null && i.Address.Zip != null && i.Address.Zip.ToString().Contains(searchText)", parameters).ToList();
         Assert.Equal(r5, d5);
 
