@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Dynamic;
+using Jokenizer.Net;
 using Xunit;
 
 namespace DynamicQueryable.Tests;
@@ -607,5 +607,47 @@ public class ExpressionTests {
         var dynamicResult = list.Where("o => (o.IsActive && o.IsSomething == 1) || (o.IsActive == false && o.IsSomething == 2)").ToArray();
 
         Assert.Equal(linqResult, dynamicResult);
+    }
+
+    [Fact]
+    public void NullableTests() {
+        const string searchText = "1";
+        var data = new List<Person> {
+            new() { Name = "proof search 1 me" },
+            new() { Name = "This has age 1", Age = 1 },
+            new() { Name = "This has non null number 1", Number = 1 },
+            new() { Name = "This address has zip 1", Address = new Address { Zip = 1 } },
+            new() { Name = "This address has non null number 1", Address = new Address { Number = 1 } }
+        }.AsQueryable();
+        var parameters = new Dictionary<string, object?> { { "searchText", searchText } };
+
+        var r1 = data.Where(i => i.Name != null && i.Name.Contains(searchText)).ToList();
+        var d1 = data.Where("i => i.Name != null && i.Name.Contains(searchText)", parameters).ToList();
+        Assert.Equal(r1, d1);
+
+        var r2 = data.OrderByDescending(i => i.Name).ToList();
+        var d2 = data.OrderByDescending("i => i.Name").ToList();
+        Assert.Equal(r2, d2);
+
+        var r3 = data.Where(i => i.Age != null && i.Age.ToString().Contains(searchText)).ToList();
+        var func = Evaluator.ToFunc<bool>(
+            "i.Age != null && i.Age.ToString().Contains(searchText)",
+            new Dictionary<string, object?> {{ "searchText", searchText }, { "i", data.First() }}
+        );
+        var v = func();
+        var d3 = data.Where("i => i.Age != null && i.Age.ToString().Contains(searchText)", parameters).ToList();
+        Assert.Equal(r3, d3);
+
+        var r4 = data.Where(i => i.Number != null && i.Number!.ToString()!.Contains(searchText)).ToList();
+        var d4 = data.Where("i => i.Number != null && i.Number.ToString().Contains(searchText)", parameters).ToList();
+        Assert.Equal(r4, d4);
+
+        var r5 = data.Where(i => i.Address != null! && i.Address.Zip != null && i.Address.Zip.ToString().Contains(searchText)).ToList();
+        var d5 = data.Where("i => i.Address != null && i.Address.Zip != null && i.Address.Zip.ToString().Contains(searchText)", parameters).ToList();
+        Assert.Equal(r5, d5);
+
+        var r6 = data.Where(i => i.Address != null! && i.Address.Number != null && i.Address.Number!.ToString()!.Contains(searchText)).ToList();
+        var d6 = data.Where("i => i.Address != null && i.Address.Number != null && i.Address.Number.ToString().Contains(searchText)", parameters).ToList();
+        Assert.Equal(r6, d6);
     }
 }
