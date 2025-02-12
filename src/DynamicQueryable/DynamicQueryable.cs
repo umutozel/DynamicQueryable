@@ -7,12 +7,12 @@ namespace System.Linq.Dynamic;
 
 public static partial class DynamicQueryable {
 
-    private static Expression CreateLambda(IQueryable source, string method, string? expression, bool generic, VarType? variables, params object[] values) {
+    private static Expression CreateLambda(IQueryable source, string method, string? expression, bool generic, VarType? variables, object[] values, Settings? settings) {
         if (source == null) throw new ArgumentNullException(nameof(source));
         if (string.IsNullOrWhiteSpace(expression)) throw new ArgumentNullException(nameof(expression));
 
         var types = new[] { source.ElementType };
-        var lambda = Evaluator.ToLambda(expression!, types, variables, values);
+        var lambda = Evaluator.ToLambda(expression!, types, variables, settings, values);
 
         return Expression.Call(
             typeof(Queryable),
@@ -44,27 +44,27 @@ public static partial class DynamicQueryable {
         return source.Provider.CreateQuery(expression);
     }
 
-    private static IQueryable HandleLambda(IQueryable source, string method, string? expression, bool generic, VarType? variables, object[] values) {
-        var lambda = CreateLambda(source, method, expression, generic, variables, values);
+    private static IQueryable HandleLambda(IQueryable source, string method, string? expression, bool generic, VarType? variables, object[] values, Settings? settings) {
+        var lambda = CreateLambda(source, method, expression, generic, variables, values, settings);
         return source.Provider.CreateQuery(lambda);
     }
 
-    private static object Execute(IQueryable source, string method) {
+    private static object? Execute(IQueryable source, string method) {
         var expression = CreateExpression(source, method);
         return source.Provider.Execute(expression);
     }
 
-    private static object ExecuteLambda(IQueryable source, string method, string? expression, bool generic, VarType? variables, params object[] values) {
-        var lambda = CreateLambda(source, method, expression, generic, variables, values);
+    private static object? ExecuteLambda(IQueryable source, string method, string? expression, bool generic, VarType? variables, object[] values, Settings? settings) {
+        var lambda = CreateLambda(source, method, expression, generic, variables, values, settings);
         return source.Provider.Execute(lambda);
     }
 
-    private static object ExecuteOptionalExpression(IQueryable source, string method, string? expression, bool generic, VarType? variables, params object[] values)
+    private static object? ExecuteOptionalExpression(IQueryable source, string method, string? expression, bool generic, VarType? variables, object[] values, Settings? settings)
         => string.IsNullOrEmpty(expression)
             ? Execute(source, method)
-            : ExecuteLambda(source, method, expression, generic, variables, values);
+            : ExecuteLambda(source, method, expression, generic, variables, values, settings);
 
-    private static object ExecuteConstant(IQueryable source, string method, object value) {
+    private static object? ExecuteConstant(IQueryable source, string method, object value) {
         var expression = CreateExpression(source, method, Expression.Constant(value));
         return source.Provider.Execute(expression);
     }

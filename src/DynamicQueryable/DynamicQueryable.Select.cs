@@ -9,19 +9,31 @@ namespace System.Linq.Dynamic;
 public static partial class DynamicQueryable {
 
     public static IQueryable Select(this IQueryable source, string selector, params object[] values)
-        => Select(source, selector, null, values);
+        => Select(source, selector, null, null, values);
 
-    public static IQueryable Select(this IQueryable source, string selector, VarType? variables, params object[] values)
-        => HandleLambda(source, "Select", selector, true, variables, values);
+    public static IQueryable Select(this IQueryable source, string selector, Settings settings, params object[] values)
+        => Select(source, selector, null, settings, values);
+
+    public static IQueryable Select(this IQueryable source, string selector, VarType variables, params object[] values)
+        => Select(source, selector, variables, null, values);
+
+    public static IQueryable Select(this IQueryable source, string selector, VarType? variables, Settings? settings, params object[] values)
+        => HandleLambda(source, "Select", selector, true, variables, values, settings);
 
     public static IQueryable SelectMany(this IQueryable source, string selector, params object[] values)
-        => SelectMany(source, selector, null, values);
+        => SelectMany(source, selector, null, null, values);
 
-    public static IQueryable SelectMany(this IQueryable source, string selector, VarType? variables, params object[] values) {
+    public static IQueryable SelectMany(this IQueryable source, string selector, Settings settings, params object[] values)
+        => SelectMany(source, selector, null, settings, values);
+
+    public static IQueryable SelectMany(this IQueryable source, string selector, VarType variables, params object[] values)
+        => SelectMany(source, selector, variables, null, values);
+
+    public static IQueryable SelectMany(this IQueryable source, string selector, VarType? variables, Settings? settings, params object[] values) {
         if (source == null) throw new ArgumentNullException(nameof(source));
         if (string.IsNullOrWhiteSpace(selector)) throw new ArgumentNullException(nameof(selector));
 
-        var lambda = Evaluator.ToLambda(selector, [source.ElementType], variables, values);
+        var lambda = Evaluator.ToLambda(selector, [source.ElementType], variables, settings, values);
 
         // Fix lambda by recreating to be of correct Func<> type in case
         // the expression parsed to something other than IEnumerable<T>.
