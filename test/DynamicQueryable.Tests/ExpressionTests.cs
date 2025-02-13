@@ -13,6 +13,8 @@ using Dyn = System.Linq.Dynamic.DynamicQueryable;
 public class ExpressionTests {
     private readonly IQueryable<Order> _query;
     private readonly double _avgId;
+    private readonly Settings _ignoreCaseSettings = new() { IgnoreMemberCase = true };
+    private readonly Dictionary<string, object?> _emptyParameters = new();
 
     public ExpressionTests() {
         var orders = CreateOrders();
@@ -67,18 +69,31 @@ public class ExpressionTests {
     [Fact]
     public void ShouldHandleAggregate() {
         var query = _query.Select(o => o.Id);
+        var diffPrm = new Dictionary<string, object?> { { "diff", 10 } };
 
-        var sumId1 = query.Aggregate((i1, i2) => i1 + i2);
-        var dynSumId1 = query.Aggregate("(i1, i2) => i1 + i2");
-        Assert.Equal(sumId1, dynSumId1);
+        var sumId1 = query.Aggregate((i1, i2) => i1 + i2 + 10);
+        var dynSumId11 = query.Aggregate("(i1, i2) => i1 + i2 + @0", 10);
+        var dynSumId12 = query.Aggregate("(i1, i2) => i1 + i2 + diff", diffPrm);
+        var dynSumId13 = query.Aggregate("(i1, i2) => i1 + i2 + 10", _ignoreCaseSettings, 10);
+        Assert.Equal(sumId1, dynSumId11);
+        Assert.Equal(sumId1, dynSumId12);
+        Assert.Equal(sumId1, dynSumId13);
 
-        var sumId2 = query.Aggregate(42, (i1, i2) => i1 + i2);
-        var dynSumId2 = query.Aggregate(42, "(i1, i2) => i1 + i2");
-        Assert.Equal(sumId2, dynSumId2);
+        var sumId2 = query.Aggregate(42, (i1, i2) => i1 + i2 + 10);
+        var dynSumId21 = query.Aggregate(42, "(i1, i2) => i1 + i2 + @0", 10);
+        var dynSumId22 = query.Aggregate(42, "(i1, i2) => i1 + i2 + diff", diffPrm);
+        var dynSumId23 = query.Aggregate(42, "(i1, i2) => i1 + i2 + @0", _ignoreCaseSettings, 10);
+        Assert.Equal(sumId2, dynSumId21);
+        Assert.Equal(sumId2, dynSumId22);
+        Assert.Equal(sumId2, dynSumId23);
 
-        var sumId3 = query.Aggregate(42, (i1, i2) => i1 + i2, i => i.ToString());
-        var dynSumId3 = query.Aggregate(42, "(i1, i2) => i1 + i2", "i => i.ToString()");
-        Assert.Equal(sumId3, dynSumId3);
+        var sumId3 = query.Aggregate(42, (i1, i2) => i1 + i2 + 10, i => i.ToString());
+        var dynSumId31 = query.Aggregate(42, "(i1, i2) => i1 + i2 + 10", "i => i.ToString()", 10);
+        var dynSumId32 = query.Aggregate(42, "(i1, i2) => i1 + i2 + diff", "i => i.ToString()", diffPrm);
+        var dynSumId33 = query.Aggregate(42, "(i1, i2) => i1 + i2 + @0", "i => i.ToString()", _ignoreCaseSettings, 10);
+        Assert.Equal(sumId3, dynSumId31);
+        Assert.Equal(sumId3, dynSumId32);
+        Assert.Equal(sumId3, dynSumId33);
 
         Assert.Throws<ArgumentNullException>(() => Dyn.Aggregate(null!, ""));
         Assert.Throws<ArgumentNullException>(() => _query.Aggregate(""));
@@ -94,31 +109,45 @@ public class ExpressionTests {
     [Fact]
     public void ShouldHandleAll() {
         var all = _query.All(o => o.Id != 42);
-        var dynAll1 = _query.All("o => o.Id != @0", 42);
-        var dynAll2 = _query.All("o => o.Id != Meaning", new Dictionary<string, object?> { { "Meaning", 42 } });
+        var dynAll1 = _query.All("o => o.Id != " + 42);
+        var dynAll2 = _query.All("o => o.Id != @0", 42);
+        var dynAll3 = _query.All("o => o.Id != Meaning", new Dictionary<string, object?> { { "Meaning", 42 } });
+        var dynAll4 = _query.All("o => o.id != @0",  _ignoreCaseSettings, 42);
 
         Assert.Equal(all, dynAll1);
         Assert.Equal(all, dynAll2);
+        Assert.Equal(all, dynAll3);
+        Assert.Equal(all, dynAll4);
     }
 
     [Fact]
     public void ShouldHandleAny() {
         var order = _query.Any(o => o.Id < _avgId);
-        var dynOrder1 = _query.Any("o => o.Id < @0", _avgId);
-        var dynOrder2 = _query.Any("o => o.Id < AvgId", new Dictionary<string, object?> { { "AvgId", _avgId } });
-        var dynOrder3 = ((IQueryable)_query).Any();
+        var dynOrder1 = _query.Any("o => o.Id < " + _avgId);
+        var dynOrder2 = _query.Any("o => o.Id < @0", _avgId);
+        var dynOrder3 = _query.Any("o => o.Id < AvgId", new Dictionary<string, object?> { { "AvgId", _avgId } });
+        var dynOrder4 = _query.Any("o => o.iD < @0", _ignoreCaseSettings, _avgId);
+        var dynOrder5 = ((IQueryable)_query).Any();
 
         Assert.Equal(order, dynOrder1);
         Assert.Equal(order, dynOrder2);
-        Assert.Equal(_query.Any(), dynOrder3);
+        Assert.Equal(order, dynOrder3);
+        Assert.Equal(order, dynOrder4);
+        Assert.Equal(_query.Any(), dynOrder5);
     }
 
     [Fact]
     public void ShouldHandleAverage() {
-        var avg = _query.Average(o => o.Price);
-        var dynAvg = _query.Average("o => o.Price");
+        var avg = _query.Average(o => o.Price + 42);
+        var dynAvg1 = _query.Average("o => o.Price + 42" );
+        var dynAvg2 = _query.Average("o => o.Price + @0", 42);
+        var dynAvg3 = _query.Average("o => o.Price + diff", new Dictionary<string, object?> { { "diff", 42 } });
+        var dynAvg4 = _query.Average("o => o.price + @0", _ignoreCaseSettings, 42);
 
-        Assert.Equal(avg, dynAvg);
+        Assert.Equal(avg, dynAvg1);
+        Assert.Equal(avg, dynAvg2);
+        Assert.Equal(avg, dynAvg3);
+        Assert.Equal(avg, dynAvg4);
     }
 
     [Fact]
@@ -141,13 +170,17 @@ public class ExpressionTests {
     [Fact]
     public void ShouldHandleCount() {
         var order = _query.Count(o => o.Id < _avgId);
-        var dynOrder1 = _query.Count("o => o.Id < @0", _avgId);
-        var dynOrder2 = _query.Count("o => o.Id < AvgId", new Dictionary<string, object?> { { "AvgId", _avgId } });
-        var dynOrder3 = ((IQueryable)_query).Count();
+        var dynOrder1 = _query.Count("o => o.Id < " + _avgId);
+        var dynOrder2 = _query.Count("o => o.Id < @0", _avgId);
+        var dynOrder3 = _query.Count("o => o.Id < AvgId", new Dictionary<string, object?> { { "AvgId", _avgId } });
+        var dynOrder4 = _query.Count("o => o.id < @0", _ignoreCaseSettings, _avgId);
+        var dynOrder5 = ((IQueryable)_query).Count();
 
         Assert.Equal(order, dynOrder1);
         Assert.Equal(order, dynOrder2);
-        Assert.Equal(_query.Count(), dynOrder3);
+        Assert.Equal(order, dynOrder3);
+        Assert.Equal(order, dynOrder4);
+        Assert.Equal(_query.Count(), dynOrder5);
     }
 
     [Fact]
@@ -202,15 +235,25 @@ public class ExpressionTests {
     [Fact]
     public void ShouldHandleFirst() {
         var order = _query.First(o => o.Id > _avgId);
-        var dynOrder1 = _query.First("o => o.Id > @0", _avgId);
-        var dynOrder2 = _query.First("o => o.Id > AvgId", new Dictionary<string, object?> { { "AvgId", _avgId } });
-        var dynOrder3 = ((IQueryable)_query).First("Id > @0", _avgId);
-        var dynOrder4 = ((IQueryable)_query).First();
+        var first = _query.First();
+        var avgPrm = new Dictionary<string, object?> { { "AvgId", _avgId } };
 
+        var dynOrder1 = _query.First("o => o.Id > @0", _avgId);
+        var dynOrder2 = _query.First("o => o.Id > AvgId", avgPrm);
+        var dynOrder3 = _query.First("o => o.id > @0", _ignoreCaseSettings, _avgId);
         Assert.Equal(order, dynOrder1);
         Assert.Equal(order, dynOrder2);
         Assert.Equal(order, dynOrder3);
-        Assert.Equal(_query.First(), dynOrder4);
+
+        IQueryable q = _query;
+        var dynOrder4 = q.First("Id > @0", _avgId);
+        var dynOrder5 = q.First("o => o.Id > AvgId", avgPrm);
+        var dynOrder6 = q.First("iD > @0", _ignoreCaseSettings, _avgId);
+        var dynOrder7 = q.First();
+        Assert.Equal(order, dynOrder4);
+        Assert.Equal(order, dynOrder5);
+        Assert.Equal(order, dynOrder6);
+        Assert.Equal(first, dynOrder7);
 
         Assert.Throws<InvalidOperationException>(() => _query.Take(0).First("Id == 1"));
         Assert.Throws<InvalidOperationException>(() => ((IQueryable)_query.Take(0)).First());
@@ -221,17 +264,32 @@ public class ExpressionTests {
     [Fact]
     public void ShouldHandleFirstOrDefault() {
         var order = _query.FirstOrDefault(o => o.Id > _avgId);
-        var dynOrder1 = _query.FirstOrDefault("o => o.Id > AvgId", new Dictionary<string, object?> { { "AvgId", _avgId } });
-        var dynOrder2 = ((IQueryable)_query).FirstOrDefault("Id > @0", _avgId);
-        var dynOrder3 = ((IQueryable)_query).FirstOrDefault();
+        var first = _query.FirstOrDefault();
+        var avgPrm = new Dictionary<string, object?> { { "AvgId", _avgId } };
 
+        var dynOrder1 = _query.FirstOrDefault("o => o.Id > @0", _avgId);
+        var dynOrder2 = _query.FirstOrDefault("o => o.Id > AvgId", avgPrm);
+        var dynOrder3 = _query.FirstOrDefault("o => o.id > @0", _ignoreCaseSettings, _avgId);
         Assert.Equal(order, dynOrder1);
         Assert.Equal(order, dynOrder2);
-        Assert.Equal(_query.FirstOrDefault(), dynOrder3);
+        Assert.Equal(order, dynOrder3);
+
+        var dynOrder4 = ((IQueryable)_query).FirstOrDefault("Id > @0", _avgId);
+        var dynOrder5 = ((IQueryable)_query).FirstOrDefault("Id > AvgId", avgPrm);
+        var dynOrder6 = ((IQueryable)_query).FirstOrDefault("iD > @0", _ignoreCaseSettings, _avgId);
+        var dynOrder7 = ((IQueryable)_query).FirstOrDefault();
+        Assert.Equal(order, dynOrder4);
+        Assert.Equal(order, dynOrder5);
+        Assert.Equal(order, dynOrder6);
+        Assert.Equal(first, dynOrder7);
 
         Assert.Null(_query.Take(0).FirstOrDefault("Id == 1"));
         Assert.Null(((IQueryable)_query.Take(0)).FirstOrDefault());
         Assert.Null(((IQueryable)_query.Take(0)).FirstOrDefault("Id == 1"));
+
+        var max = _query.Max(o => o.Id);
+        var dynOrder8 = _query.FirstOrDefault("o => o.Id > @0", max);
+        Assert.Null(dynOrder8);
     }
 
     [Fact]
@@ -239,17 +297,32 @@ public class ExpressionTests {
         var lines = _query.SelectMany(o => o.Lines).ToList().AsQueryable();
 
         var group1 = lines.GroupBy(l => l.OrderId, l => l.Id, (k, lid) => lid.Count()).ToList();
-        var dynGroup1 = lines.GroupBy("l => l.OrderId", "l => l.Id", "(k, lid) => lid.Count()").Cast<int>().ToList();
+        var dynGroup11 = lines.GroupBy("l => l.OrderId", "l => l.Id", "(k, lid) => lid.Count()", 0).Cast<int>().ToList();
+        var dynGroup12 = lines.GroupBy("l => l.OrderId", "l => l.Id", "(k, lid) => lid.Count()", _emptyParameters).Cast<int>().ToList();
+        var dynGroup13 = lines.GroupBy("l => l.orderId", "l => l.ID", "(k, lid) => lid.Count()", _ignoreCaseSettings).Cast<int>().ToList();
+
+        Assert.Equal(group1, dynGroup11);
+        Assert.Equal(group1, dynGroup12);
+        Assert.Equal(group1, dynGroup13);
 
         var group2 = lines.GroupBy(l => l.OrderId, (k, l) => l.Count()).ToList();
-        var dynGroup2 = lines.GroupBy("l => l.OrderId", "(k, l) => l.Count()").Cast<int>().ToList();
+        var dynGroup21 = lines.GroupBy("l => l.OrderId", "(k, l) => l.Count()", 0).Cast<int>().ToList();
+        var dynGroup22 = lines.GroupBy("l => l.OrderId", "(k, l) => l.Count()", _emptyParameters).Cast<int>().ToList();
+        var dynGroup23 = lines.GroupBy("l => l.orderid", "(k, l) => l.Count()", _ignoreCaseSettings).Cast<int>().ToList();
+
+        Assert.Equal(group2, dynGroup21);
+        Assert.Equal(group2, dynGroup22);
+        Assert.Equal(group2, dynGroup23);
 
         var group3 = lines.GroupBy(l => l.OrderId).ToList();
-        var dynGroup3 = lines.GroupBy("l => l.OrderId").Cast<IGrouping<int, OrderLine>>().ToList();
+        var dynGroup31 = lines.GroupBy("l => l.OrderId").Cast<IGrouping<int, OrderLine>>().ToList();
+        var dynGroup32 = lines.GroupBy("l => l.OrderId", _emptyParameters).Cast<IGrouping<int, OrderLine>>().ToList();
+        var dynGroup33 = lines.GroupBy("l => l.OrderId", _ignoreCaseSettings).Cast<IGrouping<int, OrderLine>>().ToList();
 
-        Assert.Equal(group1, dynGroup1);
-        Assert.Equal(group2, dynGroup2);
-        Assert.Equal(group3, dynGroup3);
+        Assert.Equal(group3, dynGroup31);
+        Assert.Equal(group3, dynGroup32);
+        Assert.Equal(group3, dynGroup33);
+
         Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(null!, ""));
         Assert.Throws<ArgumentNullException>(() => _query.GroupBy(""));
         Assert.Throws<ArgumentNullException>(() => Dyn.GroupBy(null!, "", ""));
@@ -266,10 +339,17 @@ public class ExpressionTests {
         var orders = _query.ToList().AsQueryable();
         var lines = _query.SelectMany(o => o.Lines).ToList().AsQueryable();
 
-        var groupJoin = orders.GroupJoin(lines, o => o.Id, l => l.OrderId, (o, l) => o.Id + l.Max(x => x.Id)).ToList();
-        var dynGroupJoin = orders.GroupJoin(lines, "o => o.Id", "l => l.OrderId", "(o, l) => o.Id + l.Max(x => x.Id)").Cast<int>().ToList();
+        var groupJoin = orders.GroupJoin(lines, o => o.Id, l => l.OrderId, (o, l) => o.Id + l.Max(x => x.Id) + 10).ToList();
+        var dynGroupJoin1 = orders.GroupJoin(lines, "o => o.Id", "l => l.OrderId", "(o, l) => o.Id + l.Max(x => x.Id) + @0", 10).Cast<int>().ToList();
+        var dynGroupJoin2 = orders.GroupJoin(lines, "o => o.Id", "l => l.OrderId",
+                "(o, l) => o.Id + l.Max(x => x.Id) + diff", new Dictionary<string, object?> { { "diff", 10 } })
+            .Cast<int>()
+            .ToList();
+        var dynGroupJoin3 = orders.GroupJoin(lines, "o => o.id", "l => l.orderId", "(o, l) => o.Id + l.Max(x => x.Id) + @0", _ignoreCaseSettings, 10).Cast<int>().ToList();
 
-        Assert.Equal(groupJoin, dynGroupJoin);
+        Assert.Equal(groupJoin, dynGroupJoin1);
+        Assert.Equal(groupJoin, dynGroupJoin2);
+        Assert.Equal(groupJoin, dynGroupJoin3);
 
         Assert.Throws<ArgumentNullException>(() => Dyn.GroupJoin(null!, null!, "", "", ""));
         Assert.Throws<ArgumentNullException>(() => _query.GroupJoin(null!, "", "", ""));
@@ -293,10 +373,15 @@ public class ExpressionTests {
         var orders = _query.ToList().AsQueryable();
         var lines = _query.SelectMany(o => o.Lines).ToList().AsQueryable();
 
-        var join = orders.Join(lines, o => o.Id, l => l.OrderId, (o, l) => o.Id + l.Id).ToList();
-        var dynJoin = orders.Join(lines, "o => o.Id", "l => l.OrderId", "(o, l) => o.Id + l.Id").Cast<int>().ToList();
+        var join = orders.Join(lines, o => o.Id, l => l.OrderId, (o, l) => o.Id + l.Id + 10).ToList();
+        var dynJoin1 = orders.Join(lines, "o => o.Id", "l => l.OrderId", "(o, l) => o.Id + l.Id + @0", 10).Cast<int>().ToList();
+        var dynJoin2 = orders.Join(lines, "o => o.Id", "l => l.OrderId", "(o, l) => o.Id + l.Id + diff",
+                new Dictionary<string, object?> { { "diff", 10 } }).Cast<int>().ToList();
+        var dynJoin3 = orders.Join(lines, "o => o.id", "l => l.orderId", "(o, l) => o.Id + l.Id + @0", _ignoreCaseSettings, 10).Cast<int>().ToList();
 
-        Assert.Equal(join, dynJoin);
+        Assert.Equal(join, dynJoin1);
+        Assert.Equal(join, dynJoin2);
+        Assert.Equal(join, dynJoin3);
 
         Assert.Throws<ArgumentNullException>(() => Dyn.Join(null!, null!, "", "", ""));
         Assert.Throws<ArgumentNullException>(() => _query.Join(null!, "", "", ""));
@@ -308,15 +393,24 @@ public class ExpressionTests {
     [Fact]
     public void ShouldHandleLast() {
         var order = _query.Last(o => o.Id < _avgId);
-        var dynOrder1 = _query.Last("o => o.Id < @0", _avgId);
-        var dynOrder2 = _query.Last("o => o.Id < AvgId", new Dictionary<string, object?> { { "AvgId", _avgId } });
-        var dynOrder3 = ((IQueryable)_query).Last("Id < @0", _avgId);
-        var dynOrder4 = ((IQueryable)_query).Last();
+        var avgPrm = new Dictionary<string, object?> { { "AvgId", _avgId } };
 
+        var dynOrder1 = _query.Last("o => o.Id < @0", _avgId);
+        var dynOrder2 = _query.Last("o => o.Id < AvgId", avgPrm);
+        var dynOrder3 = _query.Last("o => o.id < @0", _ignoreCaseSettings, _avgId);
         Assert.Equal(order, dynOrder1);
         Assert.Equal(order, dynOrder2);
         Assert.Equal(order, dynOrder3);
-        Assert.Equal(_query.Last(), dynOrder4);
+
+        IQueryable q = _query;
+        var dynOrder4 = q.Last("o => o.Id < @0", _avgId);
+        var dynOrder5 = q.Last("o => o.Id < AvgId", avgPrm);
+        var dynOrder6 = q.Last("o => o.id < @0", _ignoreCaseSettings, _avgId);
+        var dynOrder7 = ((IQueryable)_query).Last();
+        Assert.Equal(order, dynOrder4);
+        Assert.Equal(order, dynOrder5);
+        Assert.Equal(order, dynOrder6);
+        Assert.Equal(_query.Last(), dynOrder7);
 
         Assert.Throws<InvalidOperationException>(() => _query.Take(0).Last("Id == 1"));
         Assert.Throws<InvalidOperationException>(() => ((IQueryable)_query.Take(0)).Last());
@@ -326,17 +420,28 @@ public class ExpressionTests {
     [Fact]
     public void ShouldHandleLastOrDefault() {
         var order = _query.LastOrDefault(o => o.Id < _avgId);
-        var dynOrder1 = _query.LastOrDefault("o => o.Id < AvgId", new Dictionary<string, object?> { { "AvgId", _avgId } });
-        var dynOrder2 = ((IQueryable)_query).LastOrDefault("Id < @0", _avgId);
-        var dynOrder3 = ((IQueryable)_query).LastOrDefault();
+        var avgPrm = new Dictionary<string, object?> { { "AvgId", _avgId } };
 
+        var dynOrder1 = _query.LastOrDefault("o => o.Id < @0", _avgId);
+        var dynOrder2 = _query.LastOrDefault("o => o.Id < AvgId", avgPrm);
+        var dynOrder3 = _query.LastOrDefault("o => o.id < @0", _ignoreCaseSettings, _avgId);
         Assert.Equal(order, dynOrder1);
         Assert.Equal(order, dynOrder2);
-        Assert.Equal(_query.LastOrDefault(), dynOrder3);
+        Assert.Equal(order, dynOrder3);
 
-        Assert.Null(_query.Take(0).LastOrDefault("Id == 1"));
-        Assert.Null(((IQueryable)_query.Take(0)).LastOrDefault());
-        Assert.Null(((IQueryable)_query.Take(0)).LastOrDefault("Id == 1"));
+        IQueryable q = _query;
+        var dynOrder4 = q.LastOrDefault("o => o.Id < @0", _avgId);
+        var dynOrder5 = q.LastOrDefault("o => o.Id < AvgId", avgPrm);
+        var dynOrder6 = q.LastOrDefault("o => o.id < @0", _ignoreCaseSettings, _avgId);
+        var dynOrder7 = ((IQueryable)_query).LastOrDefault();
+        Assert.Equal(order, dynOrder4);
+        Assert.Equal(order, dynOrder5);
+        Assert.Equal(order, dynOrder6);
+        Assert.Equal(_query.LastOrDefault(), dynOrder7);
+
+        var max = _query.Max(o => o.Id);
+        var dynOrder8 = _query.LastOrDefault("o => o.Id > @0", max);
+        Assert.Null(dynOrder8);
     }
 
     [Fact]
@@ -345,46 +450,76 @@ public class ExpressionTests {
         var dynOrder1 = _query.LongCount("o => o.Id < @0", _avgId);
         var dynOrder2 = _query.LongCount("o => o.Id < AvgId", new Dictionary<string, object?> { { "AvgId", _avgId } });
         var dynOrder3 = ((IQueryable)_query).LongCount();
+        var dynOrder4 = _query.LongCount("o => o.iD < @0", _ignoreCaseSettings, _avgId);
 
         Assert.Equal(order, dynOrder1);
         Assert.Equal(order, dynOrder2);
         Assert.Equal(_query.LongCount(), dynOrder3);
+        Assert.Equal(order, dynOrder4);
     }
 
     [Fact]
     public void ShouldHandleMax() {
-        var avg = _query.Max(o => o.Price);
-        var dynAvg = _query.Max("o => o.Price");
+        var avg = _query.Max(o => o.Price + 10);
+        var dynAvg1 = _query.Max("o => o.Price + @0", 10);
+        var dynAvg2 = _query.Max("o => o.Price + diff", new Dictionary<string, object?> { { "diff", 10 }});
+        var dynAvg3 = _query.Max("o => o.PRiCE + @0", _ignoreCaseSettings, 10);
 
-        Assert.Equal(avg, dynAvg);
+        Assert.Equal(avg, dynAvg1);
+        Assert.Equal(avg, dynAvg2);
+        Assert.Equal(avg, dynAvg3);
     }
 
     [Fact]
     public void ShouldHandleMin() {
-        var avg = _query.Min(o => o.Price);
-        var dynAvg = _query.Min("o => o.Price");
+        var avg = _query.Min(o => o.Price - 10);
+        var dynAvg1 = _query.Min("o => o.Price - @0", 10);
+        var dynAvg2 = _query.Min("o => o.Price - diff", new Dictionary<string, object?> { { "diff", 10 } });
+        var dynAvg3 = _query.Min("o => o.prIce - @0", _ignoreCaseSettings, 10);
 
-        Assert.Equal(avg, dynAvg);
+        Assert.Equal(avg, dynAvg1);
+        Assert.Equal(avg, dynAvg2);
+        Assert.Equal(avg, dynAvg3);
     }
 
     [Fact]
     public void ShouldHandleOrderBy() {
-        var order = _query.OrderBy(o => o.Id).First();
-        var dynOrder1 = _query.OrderBy("o => o.Id").First();
-        var dynOrder2 = ((IQueryable)_query).OrderBy("o => o.Id").Cast<object>().First();
+        var order = _query.OrderBy(o => o.Id + 10).First();
 
+        var dynOrder1 = _query.OrderBy("o => o.Id + @0", 10).First();
+        var dynOrder2 = _query.OrderBy("o => o.Id + diff", new Dictionary<string, object?> { { "diff", 10 } }).First();
+        var dynOrder3 = _query.OrderBy("o => o.id + @0", _ignoreCaseSettings, 10).First();
         Assert.Equal(order, dynOrder1);
         Assert.Equal(order, dynOrder2);
+        Assert.Equal(order, dynOrder3);
+
+        IQueryable q = _query;
+        var dynOrder4 = q.OrderBy("o => o.Id + @0", 10).First();
+        var dynOrder5 = q.OrderBy("o => o.Id + diff", new Dictionary<string, object?> { { "diff", 10 } }).First();
+        var dynOrder6 = q.OrderBy("o => o.id + @0", _ignoreCaseSettings, 10).First();
+        Assert.Equal(order, dynOrder4);
+        Assert.Equal(order, dynOrder5);
+        Assert.Equal(order, dynOrder6);
     }
 
     [Fact]
     public void ShouldHandleOrderByDescending() {
-        var order = _query.OrderByDescending(o => o.Id).First();
-        var dynOrder1 = _query.OrderByDescending("o => o.Id").First();
-        var dynOrder2 = ((IQueryable)_query).OrderByDescending("o => o.Id").Cast<object>().First();
+        var order = _query.OrderByDescending(o => o.Id + 10).First();
 
+        var dynOrder1 = _query.OrderByDescending("o => o.Id + @0", 10).First();
+        var dynOrder2 = _query.OrderByDescending("o => o.Id + diff", new Dictionary<string, object?> { { "diff", 10 } }).First();
+        var dynOrder3 = _query.OrderByDescending("o => o.id + @0", _ignoreCaseSettings, 10).First();
         Assert.Equal(order, dynOrder1);
         Assert.Equal(order, dynOrder2);
+        Assert.Equal(order, dynOrder3);
+
+        IQueryable q = _query;
+        var dynOrder4 = q.OrderByDescending("o => o.Id + @0", 10).First();
+        var dynOrder5 = q.OrderByDescending("o => o.Id + diff", new Dictionary<string, object?> { { "diff", 10 } }).First();
+        var dynOrder6 = q.OrderByDescending("o => o.id + @0", _ignoreCaseSettings, 10).First();
+        Assert.Equal(order, dynOrder4);
+        Assert.Equal(order, dynOrder5);
+        Assert.Equal(order, dynOrder6);
     }
 
     [Fact]
@@ -394,18 +529,32 @@ public class ExpressionTests {
 
     [Fact]
     public void ShouldHandleSelect() {
-        var order = _query.Select(o => new { o.Id, o.OrderDate }).First();
-        var dynOrder = _query.Select("o => new { Id = o.Id, OrderDate = o.OrderDate }").Cast<dynamic>().First();
+        var order = _query.Select(o => new { o.Id, o.OrderDate, Age = 10 }).First();
+        var dynOrder1 = _query.Select("o => new { Id = o.Id, OrderDate = o.OrderDate, Age = @0 }", 10).Cast<dynamic>().First();
+        var dynOrder2 = _query.Select("o => new { Id = o.Id, OrderDate = o.OrderDate, Age = age }",
+                new Dictionary<string, object?> { { "age", 10 } })
+            .Cast<dynamic>()
+            .First();
+        var dynOrder3 = _query.Select("o => new { Id = o.Id, OrderDate = o.OrderDate, Age = @0 }", Settings.Default, 10).Cast<dynamic>().First();
 
-        Assert.Equal(order.OrderDate, dynOrder.OrderDate);
+        Assert.Equal(order.OrderDate, dynOrder1.OrderDate);
+        Assert.Equal(order.Age, dynOrder1.Age);
+        Assert.Equal(order.OrderDate, dynOrder2.OrderDate);
+        Assert.Equal(order.Age, dynOrder2.Age);
+        Assert.Equal(order.OrderDate, dynOrder3.OrderDate);
+        Assert.Equal(order.Age, dynOrder3.Age);
     }
 
     [Fact]
     public void ShouldHandleSelectMany() {
         var lines = _query.SelectMany(o => o.Lines).ToList();
-        var dynLines = _query.SelectMany("o => o.Lines").Cast<OrderLine>().ToList();
+        var dynLines1 = _query.SelectMany("o => o.Lines").Cast<OrderLine>().ToList();
+        var dynLines2 = _query.SelectMany("o => o.Lines", _emptyParameters).Cast<OrderLine>().ToList();
+        var dynLines3 = _query.SelectMany("o => o.lines", _ignoreCaseSettings).Cast<OrderLine>().ToList();
 
-        Assert.Equal(lines, dynLines);
+        Assert.Equal(lines, dynLines1);
+        Assert.Equal(lines, dynLines2);
+        Assert.Equal(lines, dynLines3);
         Assert.Throws<ArgumentNullException>(() => Dyn.SelectMany(null!, ""));
         Assert.Throws<ArgumentNullException>(() => _query.SelectMany(""));
     }
@@ -425,14 +574,26 @@ public class ExpressionTests {
             new() { Id = 3, Price = 2 }
         };
         var query = orders.AsQueryable();
+        var result = query.Single(o => o.Id > 2);
+        var searchPrm = new Dictionary<string, object?> { { "SearchId", 2 } };
 
         var dynOrder1 = query.Single("o => o.Id > @0", 2);
-        var dynOrder2 = ((IQueryable)query).Single("Id > SearchId", new Dictionary<string, object?> { { "SearchId", 2 } });
-        var dynOrder3 = ((IQueryable)query.Take(1)).Single();
+        var dynOrder2 = query.Single("o => o.Id > SearchId", searchPrm);
+        var dynOrder3 = query.Single("o => o.iD > @0", _ignoreCaseSettings, 2);
+        Assert.Equal(result, dynOrder1);
+        Assert.Equal(result, dynOrder2);
+        Assert.Equal(result, dynOrder3);
 
-        Assert.Equal(orders[2], dynOrder1);
-        Assert.Equal(dynOrder1, dynOrder2);
-        Assert.Equal(orders[0], dynOrder3);
+        IQueryable q = query;
+        var dynOrder4 = q.Single("o => o.Id > @0", 2);
+        var dynOrder5 = q.Single("Id > SearchId", searchPrm);
+        var dynOrder6 = q.Single("id > @0", _ignoreCaseSettings, 2);
+        var dynOrder7 = q.Take(1).Single();
+
+        Assert.Equal(result, dynOrder4);
+        Assert.Equal(result, dynOrder5);
+        Assert.Equal(result, dynOrder6);
+        Assert.Equal(orders[0], dynOrder7);
 
         Assert.Throws<InvalidOperationException>(() => query.Single("o => o.Id > 1"));
         Assert.Throws<InvalidOperationException>(() => query.Single("o => o.Id > 3"));
@@ -449,14 +610,30 @@ public class ExpressionTests {
             new() { Id = 3, Price = 2 }
         };
         var query = orders.AsQueryable();
+        var result = query.SingleOrDefault(o => o.Id > 2);
+        var searchPrm = new Dictionary<string, object?> { { "SearchId", 2 } };
 
         var dynOrder1 = query.SingleOrDefault("o => o.Id > @0", 2);
-        var dynOrder2 = ((IQueryable)query).SingleOrDefault("Id > SearchId", new Dictionary<string, object?> { { "SearchId", 2 } });
-        var dynOrder3 = ((IQueryable)query.Take(1)).SingleOrDefault();
+        var dynOrder2 = query.SingleOrDefault("o => o.Id > SearchId", searchPrm);
+        var dynOrder3 = query.SingleOrDefault("o => o.id > @0", _ignoreCaseSettings, 2);
+        Assert.Equal(result, dynOrder1);
+        Assert.Equal(result, dynOrder2);
+        Assert.Equal(result, dynOrder3);
 
-        Assert.Equal(orders[2], dynOrder1);
-        Assert.Equal(dynOrder1, dynOrder2);
-        Assert.Equal(orders[0], dynOrder3);
+        IQueryable q = query;
+        var dynOrder4 = q.SingleOrDefault("o => o.Id > @0", 2);
+        var dynOrder5 = q.SingleOrDefault("o => o.Id > SearchId", searchPrm);
+        var dynOrder6 = q.SingleOrDefault("o => o.id > @0", _ignoreCaseSettings, 2);
+        var dynOrder7 = q.Take(1).SingleOrDefault();
+
+        Assert.Equal(result, dynOrder4);
+        Assert.Equal(result, dynOrder5);
+        Assert.Equal(result, dynOrder6);
+        Assert.Equal(orders[0], dynOrder7);
+
+        var max = _query.Max(o => o.Id);
+        var dynOrder8 = _query.SingleOrDefault("o => o.Id > @0", max);
+        Assert.Null(dynOrder8);
 
         Assert.Null(query.SingleOrDefault("o => o.Id > 3"));
         Assert.Null(((IQueryable)query.Take(0)).SingleOrDefault());
@@ -477,22 +654,37 @@ public class ExpressionTests {
 
     [Fact]
     public void ShouldHandleSkipWhile() {
+        var avgPrm = new Dictionary<string, object?> { { "AvgId", _avgId } };
+
         var orders = _query.SkipWhile(o => o.Id > _avgId).ToList();
         var dynOrders1 = _query.SkipWhile("o => o.Id > @0", _avgId).ToList();
-        var dynOrders2 = _query.SkipWhile("o => o.Id > AvgId", new Dictionary<string, object?> { { "AvgId", _avgId } }).ToList();
-        var dynOrders3 = ((IQueryable)_query).SkipWhile("Id > @0", _avgId).Cast<Order>().ToList();
+        var dynOrders2 = _query.SkipWhile("o => o.Id > AvgId", avgPrm).ToList();
+        var dynOrders3 = _query.SkipWhile("o => o.iD > @0", _ignoreCaseSettings, _avgId).ToList();
 
         Assert.Equal(orders, dynOrders1);
         Assert.Equal(orders, dynOrders2);
         Assert.Equal(orders, dynOrders3);
+
+        IQueryable q = _query;
+        var dynOrders4 = q.SkipWhile("Id > @0", _avgId).Cast<Order>().ToList();
+        var dynOrders5 = q.SkipWhile("Id > AvgId", avgPrm).Cast<Order>().ToList();
+        var dynOrders6 = q.SkipWhile("id > @0", _ignoreCaseSettings, _avgId).Cast<Order>().ToList();
+
+        Assert.Equal(orders, dynOrders4);
+        Assert.Equal(orders, dynOrders5);
+        Assert.Equal(orders, dynOrders6);
     }
 
     [Fact]
     public void ShouldHandleSum() {
-        var avg = _query.Sum(o => o.Price);
-        var dynAvg = _query.Sum("o => o.Price");
+        var avg = _query.Sum(o => o.Price + 42);
+        var dynAvg1 = _query.Sum("o => o.Price + @0", 42);
+        var dynAvg2 = _query.Sum("o => o.Price + diff", new Dictionary<string, object?> { { "diff", 42 } });
+        var dynAvg3 = _query.Sum("o => o.pRiCe + @0", _ignoreCaseSettings, 42);
 
-        Assert.Equal(avg, dynAvg);
+        Assert.Equal(avg, dynAvg1);
+        Assert.Equal(avg, dynAvg2);
+        Assert.Equal(avg, dynAvg3);
     }
 
     [Fact]
@@ -506,34 +698,67 @@ public class ExpressionTests {
 
     [Fact]
     public void ShouldHandleTakeWhile() {
-        var orders = _query.TakeWhile(o => o.Id < _avgId).ToList();
-        var dynOrders1 = _query.TakeWhile("o => o.Id < @0", _avgId).ToList();
-        var dynOrders2 = _query.TakeWhile("o => o.Id < AvgId", new Dictionary<string, object?> { { "AvgId", _avgId } }).ToList();
-        var dynOrders3 = ((IQueryable)_query).TakeWhile("Id < @0", _avgId).Cast<Order>().ToList();
+        var avgPrm = new Dictionary<string, object?> { { "AvgId", _avgId } };
+
+        var orders = _query.TakeWhile(o => o.Id > _avgId).ToList();
+        var dynOrders1 = _query.TakeWhile("o => o.Id > @0", _avgId).ToList();
+        var dynOrders2 = _query.TakeWhile("o => o.Id > AvgId", avgPrm).ToList();
+        var dynOrders3 = _query.TakeWhile("o => o.iD > @0", _ignoreCaseSettings, _avgId).ToList();
 
         Assert.Equal(orders, dynOrders1);
         Assert.Equal(orders, dynOrders2);
         Assert.Equal(orders, dynOrders3);
+
+        IQueryable q = _query;
+        var dynOrders4 = q.TakeWhile("Id > @0", _avgId).Cast<Order>().ToList();
+        var dynOrders5 = q.TakeWhile("Id > AvgId", avgPrm).Cast<Order>().ToList();
+        var dynOrders6 = q.TakeWhile("id > @0", _ignoreCaseSettings, _avgId).Cast<Order>().ToList();
+
+        Assert.Equal(orders, dynOrders4);
+        Assert.Equal(orders, dynOrders5);
+        Assert.Equal(orders, dynOrders6);
     }
 
     [Fact]
     public void ShouldHandleThenBy() {
-        var order = _query.OrderBy(o => o.Id).ThenBy(o => o.Price).First();
-        var dynOrder1 = _query.OrderBy(o => o.Id).ThenBy("o => o.Price").First();
-        var dynOrder2 = ((IQueryable)_query.OrderBy(o => o.Id)).ThenBy("o => o.Price").Cast<object>().First();
+        var order = _query.OrderBy(o => o.Id).ThenBy(o => o.Price + 1).First();
 
+        var q1 = _query.OrderBy(o => o.Id);
+        var dynOrder1 = q1.ThenBy("o => o.Price + @0", 1).First();
+        var dynOrder2 = q1.ThenBy("o => o.Price + diff", new Dictionary<string, object?> { { "diff", 1 } }).First();
+        var dynOrder3 = q1.ThenBy("o => o.price + @0", _ignoreCaseSettings, 1).First();
         Assert.Equal(order, dynOrder1);
         Assert.Equal(order, dynOrder2);
+        Assert.Equal(order, dynOrder3);
+
+        IQueryable q2 = _query.OrderBy(o => o.Id);
+        var dynOrder4 = q2.ThenBy("o => o.Price + @0", 1).First();
+        var dynOrder5 = q2.ThenBy("o => o.Price + diff", new Dictionary<string, object?> { { "diff", 1 } }).First();
+        var dynOrder6 = q2.ThenBy("o => o.price + @0", _ignoreCaseSettings, 1).First();
+        Assert.Equal(order, dynOrder4);
+        Assert.Equal(order, dynOrder5);
+        Assert.Equal(order, dynOrder6);
     }
 
     [Fact]
     public void ShouldHandleThenByDescending() {
-        var order = _query.OrderBy(o => o.Id).ThenByDescending(o => o.Price).First();
-        var dynOrder1 = _query.OrderBy(o => o.Id).ThenByDescending("o => o.Price").First();
-        var dynOrder2 = ((IQueryable)_query.OrderBy(o => o.Id)).ThenByDescending("o => o.Price").Cast<object>().First();
+        var order = _query.OrderBy(o => o.Id).ThenByDescending(o => o.Price + 1).First();
 
+        var q1 = _query.OrderBy(o => o.Id);
+        var dynOrder1 = q1.ThenByDescending("o => o.Price + @0", 1).First();
+        var dynOrder2 = q1.ThenByDescending("o => o.Price + diff", new Dictionary<string, object?> { { "diff", 1 } }).First();
+        var dynOrder3 = q1.ThenByDescending("o => o.price + @0", _ignoreCaseSettings, 1).First();
         Assert.Equal(order, dynOrder1);
         Assert.Equal(order, dynOrder2);
+        Assert.Equal(order, dynOrder3);
+
+        IQueryable q2 = _query.OrderBy(o => o.Id);
+        var dynOrder4 = q2.ThenByDescending("o => o.Price + @0", 1).First();
+        var dynOrder5 = q2.ThenByDescending("o => o.Price + diff", new Dictionary<string, object?> { { "diff", 1 } }).First();
+        var dynOrder6 = q2.ThenByDescending("o => o.price + @0", _ignoreCaseSettings, 1).First();
+        Assert.Equal(order, dynOrder4);
+        Assert.Equal(order, dynOrder5);
+        Assert.Equal(order, dynOrder6);
     }
 
     [Fact]
@@ -551,11 +776,20 @@ public class ExpressionTests {
         var orders = _query.Where(o => o.Id > _avgId).ToList();
         var dynOrders1 = _query.Where("o => o.Id > @0", _avgId).ToList();
         var dynOrders2 = _query.Where("o => o.Id > AvgId", new Dictionary<string, object?> { { "AvgId", _avgId } }).ToList();
-        var dynOrders3 = ((IQueryable)_query).Where("Id > @0", _avgId).Cast<Order>().ToList();
+        var dynOrders3 = _query.Where("o => o.id > @0", _ignoreCaseSettings, _avgId).ToList();
 
         Assert.Equal(orders, dynOrders1);
         Assert.Equal(orders, dynOrders2);
         Assert.Equal(orders, dynOrders3);
+
+        IQueryable q = _query;
+        var dynOrders4 = q.Where("Id > @0", _avgId).Cast<Order>().ToList();
+        var dynOrders5 = q.Where("Id > AvgId", new Dictionary<string, object?> { { "AvgId", _avgId } }).Cast<Order>().ToList();
+        var dynOrders6 = q.Where("id > @0", _ignoreCaseSettings, _avgId).Cast<Order>().ToList();
+        Assert.Equal(orders, dynOrders4);
+        Assert.Equal(orders, dynOrders5);
+        Assert.Equal(orders, dynOrders6);
+
         Assert.Throws<ArgumentNullException>(() => _query.Where(""));
     }
 
@@ -563,10 +797,14 @@ public class ExpressionTests {
     public void ShouldHandleZip() {
         var lineCounts = _query.Select(o => o.Lines.Count).ToList();
 
-        var zip = _query.Zip(lineCounts, (o, l) => o.Id + l).ToList();
-        var dynZip = Dyn.Zip(_query, lineCounts, "(o, l) => o.Id + l").Cast<int>().ToList();
+        var zip = _query.Zip(lineCounts, (o, l) => o.Id + l + 10).ToList();
+        var dynZip1 = _query.Zip(lineCounts, "(o, l) => o.Id + l + @0", 10).Cast<int>().ToList();
+        var dynZip2 = _query.Zip(lineCounts, "(o, l) => o.Id + l + diff", new Dictionary<string, object?> { { "diff", 10 } }).Cast<int>().ToList();
+        var dynZip3 = _query.Zip(lineCounts, "(o, l) => o.id + l + @0", _ignoreCaseSettings, 10).Cast<int>().ToList();
 
-        Assert.Equal(zip, dynZip);
+        Assert.Equal(zip, dynZip1);
+        Assert.Equal(zip, dynZip2);
+        Assert.Equal(zip, dynZip3);
 
         Assert.Throws<ArgumentNullException>(() => Dyn.Zip<int>(null!, null!, ""));
         Assert.Throws<ArgumentNullException>(() => _query.Zip<int>(null!, ""));
@@ -633,11 +871,6 @@ public class ExpressionTests {
 #pragma warning disable CS0472 // The result of the expression is always the same since a value of this type is never equal to 'null'
         var r3 = data.Where(i => i.Age != null && i.Age.ToString().Contains(searchText)).ToList();
 #pragma warning restore CS0472 // The result of the expression is always the same since a value of this type is never equal to 'null'
-        var func = Evaluator.ToFunc<bool>(
-            "i.Age != null && i.Age.ToString().Contains(searchText)",
-            new Dictionary<string, object?> {{ "searchText", searchText }, { "i", data.First() }}
-        );
-        var v = func();
         var d3 = data.Where("i => i.Age != null && i.Age.ToString().Contains(searchText)", parameters).ToList();
         Assert.Equal(r3, d3);
 
@@ -654,5 +887,11 @@ public class ExpressionTests {
         var r6 = data.Where(i => i.Address != null! && i.Address.Number != null && i.Address.Number!.ToString()!.Contains(searchText)).ToList();
         var d6 = data.Where("i => i.Address != null && i.Address.Number != null && i.Address.Number.ToString().Contains(searchText)", parameters).ToList();
         Assert.Equal(r6, d6);
+
+        var func = Evaluator.ToFunc<bool>(
+            "i.Age != null && i.Age.ToString().Contains(searchText)",
+            new Dictionary<string, object?> {{ "searchText", searchText }, { "i", data.First() }}
+        );
+        Assert.False(func());
     }
 }

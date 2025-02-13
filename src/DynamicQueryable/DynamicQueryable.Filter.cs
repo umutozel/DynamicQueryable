@@ -24,10 +24,10 @@ public static partial class DynamicQueryable {
     public static IQueryable Where(this IQueryable source, string predicate, Settings settings, params object[] values)
         => Where(source, predicate, null, settings, values);
 
-    public static IQueryable Where(IQueryable source, string predicate, VarType variables, params object[] values)
+    public static IQueryable Where(this IQueryable source, string predicate, VarType variables, params object[] values)
         => Where(source, predicate, variables, null, values);
 
-    public static IQueryable Where(IQueryable source, string predicate, VarType? variables, Settings? settings, params object[] values)
+    public static IQueryable Where(this IQueryable source, string predicate, VarType? variables, Settings? settings, params object[] values)
         => HandleLambda(source, "Where", predicate, false, variables, values, settings);
 
     public static IQueryable<T> SkipWhile<T>(this IQueryable<T> source, string predicate, params object[] values)
