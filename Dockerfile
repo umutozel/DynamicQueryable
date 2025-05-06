@@ -1,7 +1,9 @@
 FROM jupyter/scipy-notebook:7a0c7325e470
 
-# Install .NET CLI dependencies
+# .NET SDK versiyonunu ayarla
+ENV DOTNET_SDK_VERSION 9.0.200
 
+# Kullanıcı ve UID ayarları
 ARG NB_USER=jovyan
 ARG NB_UID=1000
 ENV USER ${NB_USER}
@@ -11,8 +13,7 @@ ENV HOME /home/${NB_USER}
 WORKDIR ${HOME}
 
 USER root
-RUN apt-get update
-RUN apt-get install -y curl
+RUN apt-get update && apt-get install -y curl
 
 # Install .NET CLI dependencies
 RUN apt-get install -y --no-install-recommends \
@@ -22,58 +23,47 @@ RUN apt-get install -y --no-install-recommends \
         libicu60 \
         libssl1.1 \
         libstdc++6 \
-        zlib1g 
+        zlib1g
 
 RUN rm -rf /var/lib/apt/lists/*
 
 # Install .NET Core SDK
-ENV DOTNET_SDK_VERSION 3.0.100
-
 RUN curl -SL --output dotnet.tar.gz https://dotnetcli.blob.core.windows.net/dotnet/Sdk/$DOTNET_SDK_VERSION/dotnet-sdk-$DOTNET_SDK_VERSION-linux-x64.tar.gz \
-    && dotnet_sha512='766da31f9a0bcfbf0f12c91ea68354eb509ac2111879d55b656f19299c6ea1c005d31460dac7c2a4ef82b3edfea30232c82ba301fb52c0ff268d3e3a1b73d8f7' \
-    && echo "$dotnet_sha512 dotnet.tar.gz" | sha512sum -c - \
     && mkdir -p /usr/share/dotnet \
     && tar -zxf dotnet.tar.gz -C /usr/share/dotnet \
     && rm dotnet.tar.gz \
     && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
 
-# Enable detection of running in a container
-ENV DOTNET_RUNNING_IN_CONTAINER=true \
-    # Enable correct mode for dotnet watch (only mode supported in a container)
-    DOTNET_USE_POLLING_FILE_WATCHER=true \
-    # Skip extraction of XML docs - generally not useful within an image/container - helps performance
-    NUGET_XMLDOC_MODE=skip \
-    # Opt out of telemetry until after we install jupyter when building the image, this prevents caching of machine id
-    DOTNET_TRY_CLI_TELEMETRY_OPTOUT=true
+# PATH güncellemesi
+ENV PATH="${PATH}:/root/.dotnet/tools"
 
-# Trigger first run experience by running arbitrary cmd
-RUN dotnet help
+# .NET Interactive'i yükle
+RUN dotnet tool install -g Microsoft.dotnet-interactive
+RUN dotnet tool install -g Microsoft.dotnet-try
 
-# Copy notebooks
+# Jupyter ile etkileşimi sağlamak için kernel kurulumunu yap
+RUN dotnet interactive jupyter install
 
+# Global araçlar için PATH güncellemesi
+ENV PATH="${PATH}:/root/.dotnet/tools"
+
+# Notebooks dosyalarını kopyala
 COPY ./notebooks/ ${HOME}/notebooks/
 
-# Copy package sources
-
+# NuGet kaynaklarını kopyala (eğer varsa)
 COPY ./NuGet.config ${HOME}/nuget.config
 
+# Kullanıcı sahipliğini ayarla
 RUN chown -R ${NB_UID} ${HOME}
+
+# Jupyter'ı kullanıcı olarak çalıştır
 USER ${USER}
 
-# Install lastest build from master branch of Microsoft.DotNet.Interactive
-RUN dotnet tool install -g Microsoft.dotnet-interactive --version "1.0.0" --add-source "https://api.nuget.org/v3/index.json"
-
-# Or install latest Microsoft.DotNet.Interactive from nuget
-# RUN dotnet tool install -g dotnet-try 
-
-ENV PATH="${PATH}:${HOME}/.dotnet/tools"
-RUN echo "$PATH"
-
-# Install kernel specs
-RUN dotnet try jupyter install
-
-# Enable telemetry once we install jupyter for the image
-ENV DOTNET_TRY_CLI_TELEMETRY_OPTOUT=false
-
-# Set root to notebooks
+# Notebook dizinine geç
 WORKDIR ${HOME}/notebooks/
+
+# Varsayılan Jupyter portunu aç
+EXPOSE 8888
+
+# Jupyter'i başlat
+CMD ["start-notebook.sh"]
