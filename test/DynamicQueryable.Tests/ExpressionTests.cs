@@ -794,6 +794,48 @@ public class ExpressionTests {
     }
 
     [Fact]
+    public void ShouldHandleWhereWithNestedAnyPredicate() {
+        var firstProductId = _query.SelectMany(o => o.Lines).First().ProductId;
+        var expected = _query.Where(o => o.Lines.Any(l => l.ProductId == firstProductId)).ToList();
+
+        var dynamicWithOuterLambda = _query.Where("o => o.Lines.Any(l => l.ProductId == @0)", firstProductId).ToList();
+
+        IQueryable q = _query;
+        var dynamicWithoutOuterLambda = q.Where("Lines.Any(l => l.ProductId == @0)", firstProductId).Cast<Order>().ToList();
+
+        Assert.Equal(expected, dynamicWithOuterLambda);
+        Assert.Equal(expected, dynamicWithoutOuterLambda);
+    }
+
+    [Fact]
+    public void ShouldHandleWhereWithDeepNestedAnyPredicate() {
+        var firstSupplierId = _query.SelectMany(o => o.Lines).First(l => l.Product != null && l.Product.Supplier != null).Product!.Supplier!.Id;
+        var expected = _query.Where(o => o.Lines.Any(l => l.Product != null && l.Product.Supplier != null && l.Product.Supplier.Id == firstSupplierId)).ToList();
+
+        var dynamicWithOuterLambda = _query.Where("o => o.Lines.Any(l => l.Product != null && l.Product.Supplier != null && l.Product.Supplier.Id == @0)", firstSupplierId).ToList();
+
+        IQueryable q = _query;
+        var dynamicWithoutOuterLambda = q.Where("Lines.Any(l => l.Product != null && l.Product.Supplier != null && l.Product.Supplier.Id == @0)", firstSupplierId).Cast<Order>().ToList();
+
+        Assert.Equal(expected, dynamicWithOuterLambda);
+        Assert.Equal(expected, dynamicWithoutOuterLambda);
+    }
+
+    [Fact]
+    public void ShouldHandleWhereWithNestedAllPredicate() {
+        var minCount = 1;
+        var expected = _query.Where(o => o.Lines.All(l => l.Count >= minCount)).ToList();
+
+        var dynamicWithOuterLambda = _query.Where("o => o.Lines.All(l => l.Count >= @0)", minCount).ToList();
+
+        IQueryable q = _query;
+        var dynamicWithoutOuterLambda = q.Where("Lines.All(l => l.Count >= @0)", minCount).Cast<Order>().ToList();
+
+        Assert.Equal(expected, dynamicWithOuterLambda);
+        Assert.Equal(expected, dynamicWithoutOuterLambda);
+    }
+
+    [Fact]
     public void ShouldHandleZip() {
         var lineCounts = _query.Select(o => o.Lines.Count).ToList();
 
