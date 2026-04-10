@@ -2,7 +2,7 @@
   
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>2.1.0</Version>
+    <Version>2.1.7</Version>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Authors>Umut Özel</Authors>
     <Description>Construct Linq queries using strings.</Description>

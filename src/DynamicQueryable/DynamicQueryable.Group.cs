@@ -23,10 +23,10 @@ public static partial class DynamicQueryable {
         if (string.IsNullOrWhiteSpace(elementSelector)) throw new ArgumentNullException(nameof(elementSelector));
         if (string.IsNullOrWhiteSpace(resultSelector)) throw new ArgumentNullException(nameof(resultSelector));
 
-        var keyLambda = Evaluator.ToLambda(keySelector, [source.ElementType], variables, settings, values);
-        var elementLambda = Evaluator.ToLambda(elementSelector, [source.ElementType], variables, settings, values);
+        var keyLambda = Evaluator.ToLambda(NormalizeProjectionExpression(keySelector, source.ElementType, true), [source.ElementType], variables, settings, values);
+        var elementLambda = Evaluator.ToLambda(NormalizeProjectionExpression(elementSelector, source.ElementType, true), [source.ElementType], variables, settings, values);
         var enumElementType = typeof(IEnumerable<>).MakeGenericType(elementLambda.Body.Type);
-        var resultLambda = Evaluator.ToLambda(resultSelector, [keyLambda.Body.Type, enumElementType], variables, settings, values);
+        var resultLambda = Evaluator.ToLambda(NormalizeProjectionExpression(resultSelector, keyLambda.Body.Type), [keyLambda.Body.Type, enumElementType], variables, settings, values);
 
         return source.Provider.CreateQuery(
             Expression.Call(
@@ -55,9 +55,9 @@ public static partial class DynamicQueryable {
         if (string.IsNullOrWhiteSpace(keySelector)) throw new ArgumentNullException(nameof(keySelector));
         if (string.IsNullOrWhiteSpace(resultSelector)) throw new ArgumentNullException(nameof(resultSelector));
 
-        var keyLambda = Evaluator.ToLambda(keySelector, [source.ElementType], variables, settings, values);
+        var keyLambda = Evaluator.ToLambda(NormalizeProjectionExpression(keySelector, source.ElementType, true), [source.ElementType], variables, settings, values);
         var enumSourceType = typeof(IEnumerable<>).MakeGenericType(source.ElementType);
-        var resultLambda = Evaluator.ToLambda(resultSelector, [keyLambda.Body.Type, enumSourceType], variables, settings, values);
+        var resultLambda = Evaluator.ToLambda(NormalizeProjectionExpression(resultSelector, keyLambda.Body.Type), [keyLambda.Body.Type, enumSourceType], variables, settings, values);
 
         return source.Provider.CreateQuery(
             Expression.Call(

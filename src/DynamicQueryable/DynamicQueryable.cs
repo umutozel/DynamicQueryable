@@ -15,7 +15,11 @@ public static partial class DynamicQueryable {
         if (string.IsNullOrWhiteSpace(expression)) throw new ArgumentNullException(nameof(expression));
 
         var types = new[] { source.ElementType };
-        var normalizedExpression = NormalizeProjectionExpression(expression!);
+        var normalizedExpression = NormalizeProjectionExpression(
+            expression!,
+            source.ElementType,
+            string.Equals(method, "GroupBy", StringComparison.Ordinal)
+        );
         var lambda = Evaluator.ToLambda(normalizedExpression, types, variables, settings, values);
 
         return Expression.Call(
@@ -73,20 +77,22 @@ public static partial class DynamicQueryable {
         return source.Provider.Execute(expression);
     }
 
-    private static string NormalizeProjectionExpression(string expression) {
+    private static string NormalizeProjectionExpression(string expression, Type? sourceElementType = null, bool normalizeRootItMember = false) {
         if (string.IsNullOrWhiteSpace(expression)) {
             return expression;
         }
 
+        var isGroupingSource = sourceElementType != null && IsGroupingType(sourceElementType);
+
         var arrowIndex = expression.IndexOf("=>", StringComparison.Ordinal);
         if (arrowIndex < 0) {
-            var normalizedBody = TryNormalizeNewProjection(expression.Trim());
+            var normalizedBody = TryNormalizeNewProjection(expression.Trim(), isGroupingSource, normalizeRootItMember);
             return normalizedBody ?? expression;
         }
 
         var header = expression.Substring(0, arrowIndex + 2);
         var body = expression.Substring(arrowIndex + 2);
-        var normalized = TryNormalizeNewProjection(body.TrimStart());
+        var normalized = TryNormalizeNewProjection(body.TrimStart(), isGroupingSource, normalizeRootItMember);
         if (normalized == null) {
             return expression;
         }
@@ -95,7 +101,7 @@ public static partial class DynamicQueryable {
         return header + body.Substring(0, leadingWhitespaceLength) + normalized;
     }
 
-    private static string? TryNormalizeNewProjection(string body) {
+    private static string? TryNormalizeNewProjection(string body, bool isGroupingSource, bool normalizeRootItMember) {
         if (!StartsWithNewProjection(body, out var openParenthesisIndex)) {
             return null;
         }
@@ -120,6 +126,9 @@ public static partial class DynamicQueryable {
 
             var (valueExpression, alias) = SplitAlias(member);
             var normalizedValueExpression = NormalizeAggregateItSyntax(valueExpression.Trim());
+            normalizedValueExpression = NormalizeAggregateMemberShorthand(normalizedValueExpression);
+            normalizedValueExpression = NormalizeGroupingItMemberSyntax(normalizedValueExpression, isGroupingSource);
+            normalizedValueExpression = NormalizeRootItMemberSyntax(normalizedValueExpression, normalizeRootItMember);
             var finalAlias = string.IsNullOrWhiteSpace(alias) ? DeriveMemberName(valueExpression, i + 1) : alias;
             rewrittenMembers.Add($"{finalAlias} = {normalizedValueExpression}");
         }
@@ -225,6 +234,43 @@ public static partial class DynamicQueryable {
             "Average(",
             RegexOptions.IgnoreCase
         );
+    }
+
+    private static string NormalizeAggregateMemberShorthand(string expression) {
+        return Regex.Replace(
+            expression,
+            @"\b(Sum|Average|Min|Max)\s*\(\s*(?<member>[A-Za-z_][A-Za-z0-9_\.]*)\s*\)",
+            m => $"{m.Groups[1].Value}(x => x.{m.Groups["member"].Value.Trim()})",
+            RegexOptions.IgnoreCase
+        );
+    }
+
+    private static string NormalizeGroupingItMemberSyntax(string expression, bool isGroupingSource) {
+        if (!isGroupingSource) {
+            return expression;
+        }
+
+        return Regex.Replace(
+            expression,
+            @"\bit\.(?<member>[A-Za-z_][A-Za-z0-9_\.]*)",
+            m => $"Key.{m.Groups["member"].Value}"
+        );
+    }
+
+    private static string NormalizeRootItMemberSyntax(string expression, bool normalizeRootItMember) {
+        if (!normalizeRootItMember) {
+            return expression;
+        }
+
+        return Regex.Replace(
+            expression,
+            @"\bit\.(?<member>[A-Za-z_][A-Za-z0-9_\.]*)",
+            m => m.Groups["member"].Value
+        );
+    }
+
+    private static bool IsGroupingType(Type type) {
+        return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IGrouping<,>);
     }
 
     private static int FindInvocationOpenIndex(string expression) {

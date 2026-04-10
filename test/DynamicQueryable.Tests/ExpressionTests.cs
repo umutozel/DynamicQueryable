@@ -413,6 +413,62 @@ public class ExpressionTests {
     }
 
     [Fact]
+    public void ShouldHandleGroupByResultSelectorNewProjectionSyntax() {
+        var rows = new List<GroupRow> {
+            new() { Category = "A", Stock = 1, Price = 10 },
+            new() { Category = "A", Stock = 1, Price = 12 },
+            new() { Category = "B", Stock = 1, Price = 8 },
+            new() { Category = "B", Stock = 2, Price = 20 },
+            new() { Category = "B", Stock = 2, Price = 22 }
+        }.AsQueryable();
+
+        var expectedSingle = rows
+            .GroupBy(r => r.Category, (k, g) => new { Category = k, Count = g.Count(), Sum = g.Sum(x => x.Price), Avg = g.Average(x => x.Price) })
+            .OrderBy(x => x.Category)
+            .ToList();
+
+        var dynamicSingle = rows
+            .GroupBy("Category", "(k, g) => new(k as Category, g.Count() as Count, g.Sum(x => x.Price) as Sum, g.Average(x => x.Price) as Avg)")
+            .Cast<dynamic>()
+            .ToList();
+
+        dynamicSingle = dynamicSingle
+            .OrderBy(x => (string)GetPropertyValue(x, "Category"))
+            .ToList();
+
+        Assert.Equal(expectedSingle.Count, dynamicSingle.Count);
+        for (var i = 0; i < expectedSingle.Count; i++) {
+            Assert.Equal(expectedSingle[i].Category, (string)GetPropertyValue(dynamicSingle[i], "Category"));
+            Assert.Equal(expectedSingle[i].Count, (int)GetPropertyValue(dynamicSingle[i], "Count"));
+            Assert.Equal(expectedSingle[i].Sum, (double)GetPropertyValue(dynamicSingle[i], "Sum"), 10);
+            Assert.Equal(expectedSingle[i].Avg, (double)GetPropertyValue(dynamicSingle[i], "Avg"), 10);
+        }
+
+        var expectedMulti = rows
+            .GroupBy(r => new { r.Category, r.Stock }, (k, g) => new { k.Category, k.Stock, Count = g.Count() })
+            .OrderBy(x => x.Category)
+            .ThenBy(x => x.Stock)
+            .ToList();
+
+        var dynamicMulti = rows
+            .GroupBy("new(Category, Stock)", "(k, g) => new(k.Category, k.Stock, g.Count())")
+            .Cast<dynamic>()
+            .ToList();
+
+        dynamicMulti = dynamicMulti
+            .OrderBy(x => (string)GetPropertyValue(x, "Category"))
+            .ThenBy(x => (int)GetPropertyValue(x, "Stock"))
+            .ToList();
+
+        Assert.Equal(expectedMulti.Count, dynamicMulti.Count);
+        for (var i = 0; i < expectedMulti.Count; i++) {
+            Assert.Equal(expectedMulti[i].Category, (string)GetPropertyValue(dynamicMulti[i], "Category"));
+            Assert.Equal(expectedMulti[i].Stock, (int)GetPropertyValue(dynamicMulti[i], "Stock"));
+            Assert.Equal(expectedMulti[i].Count, (int)GetPropertyValue(dynamicMulti[i], "Count"));
+        }
+    }
+
+    [Fact]
     public void ShouldHandleGroupJoin() {
         var orders = _query.ToList().AsQueryable();
         var lines = _query.SelectMany(o => o.Lines).ToList().AsQueryable();
