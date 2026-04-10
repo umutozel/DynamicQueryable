@@ -335,6 +335,84 @@ public class ExpressionTests {
     }
 
     [Fact]
+    public void ShouldHandleGroupBySelectNewProjectionSyntax() {
+        var rows = new List<GroupRow> {
+            new() { Category = "A", Stock = 1, Price = 10 },
+            new() { Category = "A", Stock = 1, Price = 12 },
+            new() { Category = "B", Stock = 1, Price = 8 },
+            new() { Category = "B", Stock = 2, Price = 20 },
+            new() { Category = "B", Stock = 2, Price = 22 }
+        }.AsQueryable();
+
+        var expectedCount = rows
+            .GroupBy(r => r.Category)
+            .Select(g => new { Category = g.Key, Count = g.Count() })
+            .OrderBy(x => x.Category)
+            .ToList();
+
+        var dynamicCount = rows
+            .GroupBy("Category")
+            .Select("new(Key as Category, Count())")
+            .Cast<dynamic>()
+            .ToList();
+        dynamicCount = dynamicCount
+            .OrderBy(x => (string)GetPropertyValue(x, "Category"))
+            .ToList();
+
+        Assert.Equal(expectedCount.Count, dynamicCount.Count);
+        for (var i = 0; i < expectedCount.Count; i++) {
+            Assert.Equal(expectedCount[i].Category, (string)GetPropertyValue(dynamicCount[i], "Category"));
+            Assert.Equal(expectedCount[i].Count, (int)GetPropertyValue(dynamicCount[i], "Count"));
+        }
+
+        var expectedSumAvg = rows
+            .GroupBy(r => r.Category)
+            .Select(g => new { Category = g.Key, Sum = g.Sum(x => x.Price), Avg = g.Average(x => x.Price) })
+            .OrderBy(x => x.Category)
+            .ToList();
+
+        var dynamicSumAvg = rows
+            .GroupBy("Category")
+            .Select("new(Key as Category, Sum(it.Price), Avg(it.Price))")
+            .Cast<dynamic>()
+            .ToList();
+        dynamicSumAvg = dynamicSumAvg
+            .OrderBy(x => (string)GetPropertyValue(x, "Category"))
+            .ToList();
+
+        Assert.Equal(expectedSumAvg.Count, dynamicSumAvg.Count);
+        for (var i = 0; i < expectedSumAvg.Count; i++) {
+            Assert.Equal(expectedSumAvg[i].Category, (string)GetPropertyValue(dynamicSumAvg[i], "Category"));
+            Assert.Equal(expectedSumAvg[i].Sum, (double)GetPropertyValue(dynamicSumAvg[i], "Sum"), 10);
+            Assert.Equal(expectedSumAvg[i].Avg, (double)GetPropertyValue(dynamicSumAvg[i], "Avg"), 10);
+        }
+
+        var expectedMultiKey = rows
+            .GroupBy(r => new { r.Category, r.Stock })
+            .Select(g => new { g.Key.Category, g.Key.Stock, Count = g.Count() })
+            .OrderBy(x => x.Category)
+            .ThenBy(x => x.Stock)
+            .ToList();
+
+        var dynamicMultiKey = rows
+            .GroupBy("new(Category, Stock)")
+            .Select("new(Key.Category, Key.Stock, Count())")
+            .Cast<dynamic>()
+            .ToList();
+        dynamicMultiKey = dynamicMultiKey
+            .OrderBy(x => (string)GetPropertyValue(x, "Category"))
+            .ThenBy(x => (int)GetPropertyValue(x, "Stock"))
+            .ToList();
+
+        Assert.Equal(expectedMultiKey.Count, dynamicMultiKey.Count);
+        for (var i = 0; i < expectedMultiKey.Count; i++) {
+            Assert.Equal(expectedMultiKey[i].Category, (string)GetPropertyValue(dynamicMultiKey[i], "Category"));
+            Assert.Equal(expectedMultiKey[i].Stock, (int)GetPropertyValue(dynamicMultiKey[i], "Stock"));
+            Assert.Equal(expectedMultiKey[i].Count, (int)GetPropertyValue(dynamicMultiKey[i], "Count"));
+        }
+    }
+
+    [Fact]
     public void ShouldHandleGroupJoin() {
         var orders = _query.ToList().AsQueryable();
         var lines = _query.SelectMany(o => o.Lines).ToList().AsQueryable();
@@ -356,6 +434,21 @@ public class ExpressionTests {
         Assert.Throws<ArgumentNullException>(() => _query.GroupJoin(_query, "", "", ""));
         Assert.Throws<ArgumentNullException>(() => _query.GroupJoin(_query, "Id", "", ""));
         Assert.Throws<ArgumentNullException>(() => _query.GroupJoin(_query, "Id", "Id", ""));
+    }
+
+    private sealed class GroupRow {
+        public string Category { get; set; } = string.Empty;
+        public int Stock { get; set; }
+        public double Price { get; set; }
+    }
+
+    private static object GetPropertyValue(object instance, string propertyName) {
+        var property = instance.GetType().GetProperty(propertyName);
+        if (property == null) {
+            throw new Xunit.Sdk.XunitException($"Expected property '{propertyName}' on '{instance.GetType().Name}'. Available: {string.Join(", ", instance.GetType().GetProperties().Select(p => p.Name))}");
+        }
+
+        return property.GetValue(instance)!;
     }
 
     [Fact]
