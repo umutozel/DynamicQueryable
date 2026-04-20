@@ -652,6 +652,20 @@ public class ExpressionTests {
     }
 
     [Fact]
+    public void ShouldHandleOrderByShorthandBinaryExpression() {
+        // Shorthand (no explicit lambda): "field op field" — both sides resolved as members of the element
+        var lines = _query.SelectMany(o => o.Lines).AsQueryable();
+
+        var expected = lines.OrderBy(l => l.UnitPrice - l.Count).First();
+        var dynResult = lines.OrderBy("UnitPrice - Count").First();
+        Assert.Equal(expected, dynResult);
+
+        var expectedDesc = lines.OrderByDescending(l => l.UnitPrice - l.Count).First();
+        var dynResultDesc = lines.OrderByDescending("UnitPrice - Count").First();
+        Assert.Equal(expectedDesc, dynResultDesc);
+    }
+
+    [Fact]
     public void ShouldHandleOrderByDescending() {
         var order = _query.OrderByDescending(o => o.Id + 10).First();
 
