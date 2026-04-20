@@ -70,9 +70,7 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Run tests with coverage
-        run: |
-          dotnet tool install --global coverlet.console
-          coverlet test/DynamicQueryable.Tests/bin/Release/net9.0/DynamicQueryable.Tests.dll --target "dotnet" --targetargs "test test/DynamicQueryable.Tests/DynamicQueryable.Tests.csproj --no-build -c Release" --format opencover --output opencoverCoverage.xml
+        run: dotnet test test/DynamicQueryable.Tests --configuration Release --no-build /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=../../opencoverCoverage.xml
 
       - name: Upload coverage to Codecov
         run: |
