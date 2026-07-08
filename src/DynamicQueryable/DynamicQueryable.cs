@@ -127,6 +127,7 @@ public static partial class DynamicQueryable {
             var (valueExpression, alias) = SplitAlias(member);
             var normalizedValueExpression = NormalizeAggregateItSyntax(valueExpression.Trim());
             normalizedValueExpression = NormalizeAggregateMemberShorthand(normalizedValueExpression);
+            normalizedValueExpression = NormalizeAggregateExpressionShorthand(normalizedValueExpression);
             normalizedValueExpression = NormalizeGroupingItMemberSyntax(normalizedValueExpression, isGroupingSource);
             normalizedValueExpression = NormalizeRootItMemberSyntax(normalizedValueExpression, normalizeRootItMember);
             var finalAlias = string.IsNullOrWhiteSpace(alias) ? DeriveMemberName(valueExpression, i + 1) : alias;
@@ -241,6 +242,28 @@ public static partial class DynamicQueryable {
             expression,
             @"\b(Sum|Average|Min|Max)\s*\(\s*(?<member>[A-Za-z_][A-Za-z0-9_\.]*)\s*\)",
             m => $"{m.Groups[1].Value}(x => x.{m.Groups["member"].Value.Trim()})",
+            RegexOptions.IgnoreCase
+        );
+    }
+
+    /// <summary>
+    /// Wraps <c>Sum(EXPR)</c> / <c>Average(EXPR)</c> / <c>Min(EXPR)</c> /
+    /// <c>Max(EXPR)</c> where <c>EXPR</c> is an arithmetic or otherwise
+    /// element-scope expression (<c>A + B</c>, <c>Price * 1.18</c>) into an
+    /// explicit lambda <c>Sum(x =&gt; EXPR)</c>. Jokenizer's innermost-owner
+    /// walk (v1.3.5+) resolves each bare identifier inside <c>EXPR</c> as a
+    /// member of <c>x</c>, mirroring the shorthand's single-identifier
+    /// convention. Runs AFTER <see cref="NormalizeAggregateMemberShorthand"/>
+    /// so single-identifier args are already in <c>Sum(x =&gt; x.Member)</c>
+    /// form and skip this pass via the negative-lookahead for <c>=&gt;</c>.
+    /// Nested-paren args (<c>Sum(Foo(A))</c>) are left untouched — the
+    /// <c>[^()]</c> character class won't match across a parenthesis.
+    /// </summary>
+    private static string NormalizeAggregateExpressionShorthand(string expression) {
+        return Regex.Replace(
+            expression,
+            @"\b(Sum|Average|Min|Max)\s*\(\s*(?![A-Za-z_]\w*\s*=>)(?<arg>[^()]+?)\s*\)",
+            m => $"{m.Groups[1].Value}(x => {m.Groups["arg"].Value.Trim()})",
             RegexOptions.IgnoreCase
         );
     }
