@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using Jokenizer.Net;
@@ -34,13 +35,23 @@ public static partial class DynamicQueryable {
                 "Join",
                 [outer.ElementType, inner.ElementType, outerKeyLambda.Body.Type, resultLambda.Body.Type],
                 outer.Expression,
-                Expression.Constant(inner),
+                GetSourceExpression(inner),
                 Expression.Quote(outerKeyLambda),
                 Expression.Quote(innerKeyLambda),
                 Expression.Quote(resultLambda)
             )
         );
     }
+
+    /// <summary>
+    /// Mirrors <see cref="Queryable"/>'s own GetSourceExpression: an
+    /// <see cref="IQueryable"/> second/inner side participates with its
+    /// <c>Expression</c> so provider translation (e.g. EF Core) can compose it
+    /// into a single query. Wrapping it in <see cref="Expression.Constant(object)"/>
+    /// makes providers treat it as an opaque object and refuse to translate.
+    /// </summary>
+    private static Expression GetSourceExpression(IEnumerable source) =>
+        source is IQueryable queryable ? queryable.Expression : Expression.Constant(source);
 
     public static IQueryable GroupJoin(this IQueryable outer, IQueryable inner, string outerKeySelector, string innerKeySelector, string resultSelector, params object[] values)
         => GroupJoin(outer, inner, outerKeySelector, innerKeySelector, resultSelector, null, null, values);
@@ -69,7 +80,7 @@ public static partial class DynamicQueryable {
                 "GroupJoin",
                 [outer.ElementType, inner.ElementType, outerKeyLambda.Body.Type, resultLambda.Body.Type],
                 outer.Expression,
-                Expression.Constant(inner),
+                GetSourceExpression(inner),
                 Expression.Quote(outerKeyLambda),
                 Expression.Quote(innerKeyLambda),
                 Expression.Quote(resultLambda)
@@ -100,7 +111,7 @@ public static partial class DynamicQueryable {
                 "Zip",
                 [first.ElementType, secondType, resultLambda.Body.Type],
                 first.Expression,
-                Expression.Constant(second),
+                GetSourceExpression(second),
                 Expression.Quote(resultLambda)
             )
         );
